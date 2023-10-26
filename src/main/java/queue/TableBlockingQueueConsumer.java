@@ -1,25 +1,28 @@
 package queue;
 
-import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.logging.Logging;
 import data.ConnectionMessage;
-import data.WebSocketConnectionMessage;
 import ui.attack.table.WebSocketMessageTableModel;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TableBlockingQueueConsumer implements Runnable
 {
-    private final MontoyaApi api;
+    private final Logging logging;
     private final BlockingQueue<ConnectionMessage> queue;
     private final WebSocketMessageTableModel tableModel;
     private final AtomicBoolean isRunning;
 
-    public TableBlockingQueueConsumer(MontoyaApi api, BlockingQueue<ConnectionMessage> queue, WebSocketMessageTableModel tableModel, AtomicBoolean isRunning)
+    public TableBlockingQueueConsumer(
+            Logging logging,
+            BlockingQueue<ConnectionMessage> queue,
+            WebSocketMessageTableModel tableModel,
+            AtomicBoolean isRunning
+    )
     {
-        this.api = api;
+        this.logging = logging;
         this.queue = queue;
         this.tableModel = tableModel;
         this.isRunning = isRunning;
@@ -36,7 +39,7 @@ public class TableBlockingQueueConsumer implements Runnable
                 EventQueue.invokeLater(() -> tableModel.add(connectionMessage));
             } catch (InterruptedException e)
             {
-                api.logging().logToError("Error taking from tableBlockingQueue.");
+                logging.logToError("Error taking from tableBlockingQueue.");
             }
         }
     }

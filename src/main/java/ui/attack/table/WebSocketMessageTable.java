@@ -3,16 +3,16 @@ package ui.attack.table;
 import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import data.ConnectionMessage;
-import data.WebSocketConnectionMessage;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class WebSocketMessageTable extends JPanel
 {
-    public WebSocketMessageTable(WebSocketMessageTableModel webSocketMessageTableModel, WebSocketMessageEditor webSocketMessageEditor)
+    public WebSocketMessageTable(
+            WebSocketMessageTableModel webSocketMessageTableModel,
+            WebSocketMessageEditor webSocketMessageEditor
+    )
     {
         super(new BorderLayout());
 

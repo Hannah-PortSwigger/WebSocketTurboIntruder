@@ -2,9 +2,10 @@ package connection;
 
 import attack.AttackHandler;
 import burp.WebSocketExtensionWebSocketMessageHandler;
-import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.Direction;
+import burp.api.montoya.websocket.WebSockets;
 import burp.api.montoya.websocket.extension.ExtensionWebSocket;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketCreation;
 import data.WebSocketConnectionMessage;
@@ -15,15 +16,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketConnection implements Connection
 {
-    private final MontoyaApi api;
+    private final Logging logging;
+    private final WebSockets webSockets;
     private final AtomicBoolean isProcessing;
     private final AttackHandler attackHandler;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final ExtensionWebSocket extensionWebSocket;
 
-    WebSocketConnection(MontoyaApi api, AtomicBoolean isProcessing, AttackHandler attackHandler, WebSocketMessage baseWebSocketMessage, BlockingQueue<WebSocketConnectionMessage> sendMessageQueue)
+    WebSocketConnection(
+            Logging logging,
+            WebSockets webSockets,
+            AtomicBoolean isProcessing,
+            AttackHandler attackHandler,
+            WebSocketMessage baseWebSocketMessage,
+            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
+    )
     {
-        this.api = api;
+        this.logging = logging;
+        this.webSockets = webSockets;
         this.isProcessing = isProcessing;
         this.attackHandler = attackHandler;
         this.sendMessageQueue = sendMessageQueue;
@@ -44,7 +54,7 @@ public class WebSocketConnection implements Connection
             }
             catch (InterruptedException e)
             {
-                api.logging().logToError("Failed to put message on sendMessageQueue");
+                logging.logToError("Failed to put message on sendMessageQueue");
             }
         }
     }
@@ -58,17 +68,17 @@ public class WebSocketConnection implements Connection
     {
         ExtensionWebSocket extensionWebSocket;
 
-        ExtensionWebSocketCreation extensionWebSocketCreation = api.websockets().createWebSocket(baseWebSocketMessage.upgradeRequest());
+        ExtensionWebSocketCreation extensionWebSocketCreation = webSockets.createWebSocket(baseWebSocketMessage.upgradeRequest());
 
         if (extensionWebSocketCreation.webSocket().isPresent())
         {
             extensionWebSocket = extensionWebSocketCreation.webSocket().get();
 
-            extensionWebSocket.registerMessageHandler(new WebSocketExtensionWebSocketMessageHandler(api, attackHandler, this));
+            extensionWebSocket.registerMessageHandler(new WebSocketExtensionWebSocketMessageHandler(logging, attackHandler, this));
         }
         else
         {
-            api.logging().logToError("Failed to create websocket connection");
+            logging.logToError("Failed to create websocket connection");
             extensionWebSocket = null;
         }
 

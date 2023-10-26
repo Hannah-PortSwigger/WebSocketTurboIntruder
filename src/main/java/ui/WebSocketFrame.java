@@ -2,8 +2,11 @@ package ui;
 
 import attack.AttackHandler;
 import burp.WebSocketFuzzer;
-import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.logging.Logging;
+import burp.api.montoya.persistence.Persistence;
+import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
+import burp.api.montoya.websocket.WebSockets;
 import data.ConnectionMessage;
 import data.WebSocketConnectionMessage;
 import ui.attack.WebSocketAttackPanel;
@@ -19,14 +22,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketFrame extends JFrame
 {
-    private final MontoyaApi api;
+    private final Logging logging;
+    private final UserInterface userInterface;
+    private final Persistence persistence;
+    private final WebSockets webSockets;
     private final WebSocketMessage webSocketMessage;
     private final AtomicBoolean isProcessing;
     private final AtomicBoolean isRunning;
 
-    public WebSocketFrame(MontoyaApi api, WebSocketMessage webSocketMessage)
+    public WebSocketFrame(
+            Logging logging,
+            UserInterface userInterface,
+            Persistence persistence,
+            WebSockets webSockets,
+            WebSocketMessage webSocketMessage
+    )
     {
-        this.api = api;
+        this.logging = logging;
+        this.userInterface = userInterface;
+        this.persistence = persistence;
+        this.webSockets = webSockets;
         this.webSocketMessage = webSocketMessage;
 
         isProcessing = new AtomicBoolean(true);
@@ -59,10 +74,10 @@ public class WebSocketFrame extends JFrame
         BlockingQueue<WebSocketConnectionMessage> sendMessageQueue = new LinkedBlockingQueue<>();
         BlockingQueue<ConnectionMessage> tableBlockingQueue = new LinkedBlockingQueue<>();
 
-        AttackHandler attackHandler = new AttackHandler(api, isProcessing, sendMessageQueue, tableBlockingQueue, webSocketMessage);
+        AttackHandler attackHandler = new AttackHandler(logging, webSockets, isProcessing, sendMessageQueue, tableBlockingQueue, webSocketMessage);
 
-        cardDeck.add(new WebSocketEditorPanel(api, cardLayout, cardDeck, attackHandler, tableBlockingQueue, webSocketMessage), "editorPanel");
-        cardDeck.add(new WebSocketAttackPanel(api, cardLayout, cardDeck, attackHandler, sendMessageQueue, tableBlockingQueue, webSocketMessage, isProcessing, isRunning), "attackPanel");
+        cardDeck.add(new WebSocketEditorPanel(logging, userInterface, persistence, cardLayout, cardDeck, attackHandler, webSocketMessage), "editorPanel");
+        cardDeck.add(new WebSocketAttackPanel(logging, userInterface, cardLayout, cardDeck, attackHandler, sendMessageQueue, tableBlockingQueue, isProcessing, isRunning), "attackPanel");
 
         this.getContentPane().add(cardDeck);
         this.pack();

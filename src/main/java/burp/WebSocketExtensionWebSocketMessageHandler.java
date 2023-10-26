@@ -1,7 +1,7 @@
 package burp;
 
 import attack.AttackHandler;
-import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.logging.Logging;
 import burp.api.montoya.websocket.BinaryMessage;
 import burp.api.montoya.websocket.TextMessage;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketMessageHandler;
@@ -14,14 +14,18 @@ import java.util.concurrent.Executors;
 
 public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSocketMessageHandler
 {
-    private final MontoyaApi api;
+    private final Logging logging;
     private final AttackHandler attackHandler;
     private final WebSocketConnection connection;
     private final ExecutorService executorService;
 
-    public WebSocketExtensionWebSocketMessageHandler(MontoyaApi api, AttackHandler attackHandler, WebSocketConnection connection)
+    public WebSocketExtensionWebSocketMessageHandler(
+            Logging logging,
+            AttackHandler attackHandler,
+            WebSocketConnection connection
+    )
     {
-        this.api = api;
+        this.logging = logging;
         this.attackHandler = attackHandler;
         this.connection = connection;
 
@@ -39,6 +43,6 @@ public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSo
     @Override
     public void binaryMessageReceived(BinaryMessage binaryMessage)
     {
-        api.logging().logToOutput("Unhandled binary message received");
+        logging.logToOutput("Unhandled binary message received");
     }
 }

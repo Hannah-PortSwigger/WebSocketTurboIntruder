@@ -1,8 +1,8 @@
 package ui.attack;
 
 import attack.AttackHandler;
-import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
+import burp.api.montoya.logging.Logging;
+import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import data.ConnectionMessage;
@@ -21,30 +21,38 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketAttackPanel extends JPanel
 {
-    private final MontoyaApi api;
+    private final UserInterface userInterface;
     private final CardLayout cardLayout;
     private final JPanel cardDeck;
-    private final WebSocketMessage baseWebSocketMessage;
     private final AtomicBoolean isProcessing;
     private WebSocketMessageTableModel messageTableModel;
 
-    public WebSocketAttackPanel(MontoyaApi api, CardLayout cardLayout, JPanel cardDeck, AttackHandler attackHandler, BlockingQueue<WebSocketConnectionMessage> sendMessageQueue, BlockingQueue<ConnectionMessage> tableBlockingQueue, WebSocketMessage baseWebSocketMessage, AtomicBoolean isProcessing, AtomicBoolean isRunning)
+    public WebSocketAttackPanel(
+            Logging logging,
+            UserInterface userInterface,
+            CardLayout cardLayout,
+            JPanel cardDeck,
+            AttackHandler attackHandler,
+            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
+            BlockingQueue<ConnectionMessage> tableBlockingQueue,
+            AtomicBoolean isProcessing,
+            AtomicBoolean isRunning
+    )
     {
         super(new BorderLayout());
 
-        this.api = api;
+        this.userInterface = userInterface;
         this.cardLayout = cardLayout;
         this.cardDeck = cardDeck;
-        this.baseWebSocketMessage = baseWebSocketMessage;
         this.isProcessing = isProcessing;
 
         initComponents();
 
         ExecutorService sendMessageExecutorService = Executors.newSingleThreadExecutor();
-        sendMessageExecutorService.execute(new SendMessageQueueConsumer(api, isProcessing, sendMessageQueue, attackHandler));
+        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logging, isProcessing, sendMessageQueue, attackHandler));
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new TableBlockingQueueConsumer(api, tableBlockingQueue, messageTableModel, isRunning));
+        executorService.execute(new TableBlockingQueueConsumer(logging, tableBlockingQueue, messageTableModel, isRunning));
     }
 
     private void initComponents()
@@ -62,14 +70,13 @@ public class WebSocketAttackPanel extends JPanel
     private Component getWebSocketMessageTable(WebSocketMessageEditor webSocketMessageEditor)
     {
         messageTableModel = new WebSocketMessageTableModel();
-        WebSocketMessageTable webSocketMessageTable = new WebSocketMessageTable(messageTableModel, webSocketMessageEditor);
 
-        return webSocketMessageTable;
+        return new WebSocketMessageTable(messageTableModel, webSocketMessageEditor);
     }
 
     private WebSocketMessageEditor getWebSocketMessageEditor()
     {
-        return api.userInterface().createWebSocketMessageEditor(EditorOptions.READ_ONLY);
+        return userInterface.createWebSocketMessageEditor(EditorOptions.READ_ONLY);
     }
 
     private Component getHaltConfigureButton()

@@ -2,12 +2,12 @@ package ui.editor;
 
 import attack.AttackHandler;
 import burp.WebSocketFuzzer;
-import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.logging.Logging;
+import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.Theme;
+import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
-import data.ConnectionMessage;
-import data.WebSocketConnectionMessage;
 import org.apache.commons.io.IOUtils;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -25,29 +25,37 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 public class WebSocketEditorPanel extends JPanel
 {
-    private final MontoyaApi api;
+    private final Logging logging;
+    private final UserInterface userInterface;
+    private final Persistence persistence;
     private final CardLayout cardLayout;
     private final JPanel cardDeck;
     private final AttackHandler attackHandler;
-    private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
     private final WebSocketMessage webSocketMessage;
     private JComboBox<Path> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
 
-    public WebSocketEditorPanel(MontoyaApi api, CardLayout cardLayout, JPanel cardDeck, AttackHandler attackHandler, BlockingQueue<ConnectionMessage> tableBlockingQueue, WebSocketMessage webSocketMessage)
+    public WebSocketEditorPanel(
+            Logging logging,
+            UserInterface userInterface,
+            Persistence persistence,
+            CardLayout cardLayout,
+            JPanel cardDeck,
+            AttackHandler attackHandler,
+            WebSocketMessage webSocketMessage
+    )
     {
-        this.api = api;
+        this.logging = logging;
+        this.userInterface = userInterface;
+        this.persistence = persistence;
         this.cardLayout = cardLayout;
         this.cardDeck = cardDeck;
         this.attackHandler = attackHandler;
-        this.tableBlockingQueue = tableBlockingQueue;
         this.webSocketMessage = webSocketMessage;
 
         this.setLayout(new BorderLayout());
@@ -65,7 +73,7 @@ public class WebSocketEditorPanel extends JPanel
 
     private Component getWebSocketMessageEditor()
     {
-        webSocketsMessageEditor = api.userInterface().createWebSocketMessageEditor();
+        webSocketsMessageEditor = userInterface.createWebSocketMessageEditor();
         webSocketsMessageEditor.setContents(webSocketMessage.payload());
 
         return webSocketsMessageEditor.uiComponent();
@@ -105,7 +113,7 @@ public class WebSocketEditorPanel extends JPanel
             }
             else
             {
-                String content = null;
+                String content;
                 try
                 {
                     content = Files.readString(path);
@@ -159,7 +167,7 @@ public class WebSocketEditorPanel extends JPanel
 
     private List<Path> getPathList()
     {
-        String websocketScriptsPath = api.persistence().preferences().getString("websocketsScriptsPath");
+        String websocketScriptsPath = persistence.preferences().getString("websocketsScriptsPath");
         List<Path> pathList = new ArrayList<>();
 
         if (WebSocketFuzzer.DEFAULT_SCRIPT_DIRECTORY.equals(websocketScriptsPath))
@@ -214,7 +222,7 @@ public class WebSocketEditorPanel extends JPanel
             if (option == JFileChooser.APPROVE_OPTION)
             {
                 File file = scriptsFileChooser.getSelectedFile();
-                api.persistence().preferences().setString("websocketsScriptsPath", file.getAbsolutePath());
+                persistence.preferences().setString("websocketsScriptsPath", file.getAbsolutePath());
 
                 int originalSize = scriptComboBox.getItemCount();
 
@@ -255,7 +263,7 @@ public class WebSocketEditorPanel extends JPanel
         codeEditor.setEOLMarkersVisible(false);
         codeEditor.setWhitespaceVisible(false);
 
-        if (api.userInterface().currentTheme() == Theme.DARK)
+        if (userInterface.currentTheme() == Theme.DARK)
         {
             try
             {
@@ -264,7 +272,7 @@ public class WebSocketEditorPanel extends JPanel
             }
             catch (IOException e)
             {
-                api.logging().logToError("Unable to apply dark theme.");
+                logging.logToError("Unable to apply dark theme.");
             }
         }
 
@@ -278,7 +286,8 @@ public class WebSocketEditorPanel extends JPanel
             String payload = webSocketsMessageEditor.getContents().toString();
 
             String jythonCode = rSyntaxTextArea.getText();
-            Future<?> jythonCodeRunner = Executors.newSingleThreadExecutor().submit(() -> attackHandler.executeJython(payload, jythonCode));
+
+            Executors.newSingleThreadExecutor().execute(() -> attackHandler.executeJython(payload, jythonCode));
 
             //TODO if anything goes wrong, prevent it from going to the attack panel
 

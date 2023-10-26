@@ -14,7 +14,13 @@ public class WebSocketConnectionMessage implements ConnectionMessage
     private String comment;
     private final WebSocketConnection connection;
 
-    public WebSocketConnectionMessage(String payload, Direction direction, LocalDateTime dateTime, String comment, WebSocketConnection connection)
+    public WebSocketConnectionMessage(
+            String payload,
+            Direction direction,
+            LocalDateTime dateTime,
+            String comment,
+            WebSocketConnection connection
+    )
     {
         this.payload = payload;
         this.direction = direction;
