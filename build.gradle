@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group = 'net.portswigger'
+version = '1.0'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2023.10.3'
+
+    implementation (
+            'org.python:jython-standalone:2.7.3',
+            'com.fifesoft:rsyntaxtextarea:3.3.4',
+            'commons-io:commons-io:2.13.0'
+
+    )
+}
+
+tasks.register('fatJar', Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
