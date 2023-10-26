@@ -5,47 +5,19 @@ import connection.Connection;
 
 import java.time.LocalDateTime;
 
-public class ConnectionMessage
+public interface ConnectionMessage
 {
-    private final WebSocketConnectionMessage message;
+    String getPayload();
 
-    public ConnectionMessage(WebSocketConnectionMessage message)
-    {
-        this.message = message;
-    }
+    Direction getDirection();
 
-    public String getPayload()
-    {
-        return message.getPayload();
-    }
+    int getLength();
 
-    public Direction getDirection()
-    {
-        return message.getDirection();
-    }
+    LocalDateTime getDateTime();
 
-    public int getLength()
-    {
-        return message.getLength();
-    }
+    String getComment();
 
-    public LocalDateTime getDateTime()
-    {
-        return message.getDateTime();
-    }
+    Connection getConnection();
 
-    public String getComment()
-    {
-        return message.getComment();
-    }
-
-    public Connection getConnection()
-    {
-        return message.getConnection();
-    }
-
-    public void setComment(String comment)
-    {
-        message.setComment(comment);
-    }
+    void setComment(String comment);
 }

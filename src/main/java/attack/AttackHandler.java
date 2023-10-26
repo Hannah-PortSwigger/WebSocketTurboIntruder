@@ -3,12 +3,14 @@ package attack;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.Direction;
+import connection.Connection;
 import connection.ConnectionFactory;
 import data.ConnectionMessage;
 import data.WebSocketConnectionMessage;
 import org.python.util.PythonInterpreter;
 import queue.TableBlockingQueueProducer;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -64,14 +66,64 @@ public class AttackHandler
     public void executeCallback(WebSocketConnectionMessage webSocketConnectionMessage)
     {
         String messageParameterName = "websocket_message";
-        interpreter.set(messageParameterName, new ConnectionMessage(webSocketConnectionMessage));
-        if (webSocketConnectionMessage.getDirection() == Direction.CLIENT_TO_SERVER)
+        interpreter.set(messageParameterName, new DecoratedConnectionMessage(webSocketConnectionMessage));
+
+        String callbackMethod = webSocketConnectionMessage.getDirection() == Direction.CLIENT_TO_SERVER
+                ? "handle_outgoing_message"
+                : "handle_incoming_message";
+
+        interpreter.exec(String.format("%s(%s", callbackMethod, messageParameterName));
+    }
+
+    private static class DecoratedConnectionMessage implements ConnectionMessage
+    {
+        private final WebSocketConnectionMessage webSocketConnectionMessage;
+
+        DecoratedConnectionMessage(WebSocketConnectionMessage webSocketConnectionMessage)
         {
-            interpreter.exec("handle_outgoing_message(" + messageParameterName + ")");
+            this.webSocketConnectionMessage = webSocketConnectionMessage;
         }
-        else
+
+        @Override
+        public String getPayload()
         {
-            interpreter.exec("handle_incoming_message(" + messageParameterName + ")");
+            return webSocketConnectionMessage.getPayload();
+        }
+
+        @Override
+        public Direction getDirection()
+        {
+            return webSocketConnectionMessage.getDirection();
+        }
+
+        @Override
+        public int getLength()
+        {
+            return webSocketConnectionMessage.getLength();
+        }
+
+        @Override
+        public LocalDateTime getDateTime()
+        {
+            return webSocketConnectionMessage.getDateTime();
+        }
+
+        @Override
+        public String getComment()
+        {
+            return webSocketConnectionMessage.getComment();
+        }
+
+        @Override
+        public Connection getConnection()
+        {
+            return webSocketConnectionMessage.getConnection();
+        }
+
+        @Override
+        public void setComment(String comment)
+        {
+            webSocketConnectionMessage.setComment(comment);
         }
     }
 }

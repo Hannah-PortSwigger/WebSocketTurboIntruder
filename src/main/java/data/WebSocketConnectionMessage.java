@@ -5,7 +5,7 @@ import connection.WebSocketConnection;
 
 import java.time.LocalDateTime;
 
-public class WebSocketConnectionMessage
+public class WebSocketConnectionMessage implements ConnectionMessage
 {
     private final String payload;
     private final Direction direction;
@@ -24,36 +24,43 @@ public class WebSocketConnectionMessage
         this.connection = connection;
     }
 
+    @Override
     public String getPayload()
     {
         return payload;
     }
 
+    @Override
     public Direction getDirection()
     {
         return direction;
     }
 
+    @Override
     public int getLength()
     {
         return length;
     }
 
+    @Override
     public LocalDateTime getDateTime()
     {
         return dateTime;
     }
 
+    @Override
     public String getComment()
     {
         return comment;
     }
 
+    @Override
     public WebSocketConnection getConnection()
     {
         return connection;
     }
 
+    @Override
     public void setComment(String comment)
     {
         this.comment = comment;
