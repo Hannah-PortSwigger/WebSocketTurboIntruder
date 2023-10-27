@@ -1,28 +1,29 @@
 package burp;
 
-import burp.api.montoya.logging.Logging;
 import burp.api.montoya.websocket.BinaryMessage;
 import burp.api.montoya.websocket.TextMessage;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketMessageHandler;
 import connection.WebSocketConnection;
 import data.WebSocketConnectionMessage;
+import logger.Logger;
+import logger.LoggerLevel;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
 
 public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSocketMessageHandler
 {
-    private final Logging logging;
+    private final Logger logger;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final WebSocketConnection connection;
 
     public WebSocketExtensionWebSocketMessageHandler(
-            Logging logging,
+            Logger logger,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             WebSocketConnection connection
     )
     {
-        this.logging = logging;
+        this.logger = logger;
         this.sendMessageQueue = sendMessageQueue;
         this.connection = connection;
     }
@@ -36,13 +37,13 @@ public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSo
         }
         catch (InterruptedException e)
         {
-            logging.logToError("Failed to put message on queue.");
+            logger.logError("Failed to put message on queue.");
         }
     }
 
     @Override
     public void binaryMessageReceived(BinaryMessage binaryMessage)
     {
-        logging.logToOutput("Unhandled binary message received");
+        logger.logOutput(LoggerLevel.ERROR_ONLY, "Unhandled binary message received");
     }
 }

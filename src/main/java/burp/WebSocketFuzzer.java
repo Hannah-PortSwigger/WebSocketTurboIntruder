@@ -3,7 +3,6 @@ package burp;
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.extension.Extension;
-import burp.api.montoya.logging.Logging;
 import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.websocket.WebSockets;
@@ -27,32 +26,31 @@ public class WebSocketFuzzer implements BurpExtension
         Extension extension = api.extension();
         Persistence persistence = api.persistence();
         UserInterface userInterface = api.userInterface();
-        Logging logging = api.logging();
+        Logger logger = new Logger(api.logging());
         WebSockets websockets = api.websockets();
 
         List<JFrame> frameList = new ArrayList<>();
 
         extension.setName(EXTENSION_NAME);
 
-        initializeDefaultDirectory(logging, persistence);
+        initializeDefaultDirectory(logger, persistence);
 
-        Logger logger = new Logger(logging);
         JMenu menu = generateMenu(logger, persistence, frameList);
         userInterface.menuBar().registerMenu(menu);
 
-        userInterface.registerContextMenuItemsProvider(new WebSocketContextMenuItemsProvider(logging, userInterface, persistence, websockets, frameList));
+        userInterface.registerContextMenuItemsProvider(new WebSocketContextMenuItemsProvider(logger, userInterface, persistence, websockets, frameList));
 
         extension.registerUnloadingHandler(new WebSocketExtensionUnloadingHandler(frameList));
 
-        logging.logToOutput(EXTENSION_NAME + " - Loaded");
+        logger.logOutput(LoggerLevel.DEFAULT, EXTENSION_NAME + " - Loaded");
     }
 
-    private void initializeDefaultDirectory(Logging logging, Persistence persistence)
+    private void initializeDefaultDirectory(Logger logger, Persistence persistence)
     {
         if (persistence.preferences().getString("websocketsScriptsPath") == null)
         {
             persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
-            logging.logToOutput("Default script directory initialized.");
+            logger.logOutput(LoggerLevel.DEBUG, "Default script directory initialized.");
         }
     }
 

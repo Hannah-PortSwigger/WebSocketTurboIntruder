@@ -2,12 +2,12 @@ package ui.editor;
 
 import attack.AttackHandler;
 import burp.WebSocketFuzzer;
-import burp.api.montoya.logging.Logging;
 import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
+import logger.Logger;
 import org.apache.commons.io.IOUtils;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 
 public class WebSocketEditorPanel extends JPanel
 {
-    private final Logging logging;
+    private final Logger logger;
     private final UserInterface userInterface;
     private final Persistence persistence;
     private final CardLayout cardLayout;
@@ -40,7 +40,7 @@ public class WebSocketEditorPanel extends JPanel
     private WebSocketMessageEditor webSocketsMessageEditor;
 
     public WebSocketEditorPanel(
-            Logging logging,
+            Logger logger,
             UserInterface userInterface,
             Persistence persistence,
             CardLayout cardLayout,
@@ -49,7 +49,7 @@ public class WebSocketEditorPanel extends JPanel
             WebSocketMessage webSocketMessage
     )
     {
-        this.logging = logging;
+        this.logger = logger;
         this.userInterface = userInterface;
         this.persistence = persistence;
         this.cardLayout = cardLayout;
@@ -263,7 +263,7 @@ public class WebSocketEditorPanel extends JPanel
             }
             catch (IOException e)
             {
-                logging.logToError("Unable to apply dark theme.");
+                logger.logError("Unable to apply dark theme.");
             }
         }
 
@@ -286,7 +286,7 @@ public class WebSocketEditorPanel extends JPanel
                 catch (Exception e)
                 {
                     JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
-                    logging.logToError("Jython code error. Please review.\r\n" + e);
+                    logger.logError("Jython code error. Please review.\r\n" + e);
                 }
             }).start();
 

@@ -1,12 +1,12 @@
 package ui.attack;
 
 import attack.AttackHandler;
-import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import data.ConnectionMessage;
 import data.WebSocketConnectionMessage;
+import logger.Logger;
 import queue.SendMessageQueueConsumer;
 import queue.TableBlockingQueueConsumer;
 import ui.attack.table.WebSocketMessageTable;
@@ -28,7 +28,7 @@ public class WebSocketAttackPanel extends JPanel
     private WebSocketMessageTableModel messageTableModel;
 
     public WebSocketAttackPanel(
-            Logging logging,
+            Logger logger,
             UserInterface userInterface,
             CardLayout cardLayout,
             JPanel cardDeck,
@@ -49,10 +49,10 @@ public class WebSocketAttackPanel extends JPanel
         initComponents();
 
         ExecutorService sendMessageExecutorService = Executors.newSingleThreadExecutor();
-        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logging, isProcessing, sendMessageQueue, attackHandler));
+        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logger, isProcessing, sendMessageQueue, attackHandler));
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new TableBlockingQueueConsumer(logging, tableBlockingQueue, messageTableModel, isRunning));
+        executorService.execute(new TableBlockingQueueConsumer(logger, tableBlockingQueue, messageTableModel, isRunning));
     }
 
     private void initComponents()

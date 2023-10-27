@@ -2,6 +2,8 @@ package logger;
 
 import burp.api.montoya.logging.Logging;
 
+import java.io.OutputStream;
+
 public class Logger
 {
     private final Logging logging;
@@ -29,5 +31,15 @@ public class Logger
     public void logError(String output)
     {
         logging.logToError(output);
+    }
+
+    public OutputStream outputStream()
+    {
+        return logging.output();
+    }
+
+    public OutputStream errorStream()
+    {
+        return logging.error();
     }
 }

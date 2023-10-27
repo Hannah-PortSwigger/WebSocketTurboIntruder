@@ -1,13 +1,13 @@
 package connection;
 
 import burp.WebSocketExtensionWebSocketMessageHandler;
-import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.Direction;
 import burp.api.montoya.websocket.WebSockets;
 import burp.api.montoya.websocket.extension.ExtensionWebSocket;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketCreation;
 import data.WebSocketConnectionMessage;
+import logger.Logger;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
@@ -15,21 +15,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketConnection implements Connection
 {
-    private final Logging logging;
+    private final Logger logger;
     private final WebSockets webSockets;
     private final AtomicBoolean isProcessing;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final ExtensionWebSocket extensionWebSocket;
 
     WebSocketConnection(
-            Logging logging,
+            Logger logger,
             WebSockets webSockets,
             AtomicBoolean isProcessing,
             WebSocketMessage baseWebSocketMessage,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
     )
     {
-        this.logging = logging;
+        this.logger = logger;
         this.webSockets = webSockets;
         this.isProcessing = isProcessing;
         this.sendMessageQueue = sendMessageQueue;
@@ -47,7 +47,7 @@ public class WebSocketConnection implements Connection
             }
             catch (InterruptedException e)
             {
-                logging.logToError("Failed to put message on sendMessageQueue");
+                logger.logError("Failed to put message on sendMessageQueue");
             }
         }
     }
@@ -67,11 +67,11 @@ public class WebSocketConnection implements Connection
         {
             extensionWebSocket = extensionWebSocketCreation.webSocket().get();
 
-            extensionWebSocket.registerMessageHandler(new WebSocketExtensionWebSocketMessageHandler(logging, sendMessageQueue, this));
+            extensionWebSocket.registerMessageHandler(new WebSocketExtensionWebSocketMessageHandler(logger, sendMessageQueue, this));
         }
         else
         {
-            logging.logToError("Failed to create websocket connection");
+            logger.logError("Failed to create websocket connection");
             extensionWebSocket = null;
         }
 

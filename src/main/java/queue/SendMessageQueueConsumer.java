@@ -1,28 +1,28 @@
 package queue;
 
 import attack.AttackHandler;
-import burp.api.montoya.logging.Logging;
 import burp.api.montoya.websocket.Direction;
 import data.WebSocketConnectionMessage;
+import logger.Logger;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SendMessageQueueConsumer implements Runnable
 {
-    private final Logging logging;
+    private final Logger logger;
     private final AtomicBoolean isProcessing;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final AttackHandler attackHandler;
 
     public SendMessageQueueConsumer(
-            Logging logging,
+            Logger logger,
             AtomicBoolean isProcessing,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             AttackHandler attackHandler
     )
     {
-        this.logging = logging;
+        this.logger = logger;
         this.isProcessing = isProcessing;
         this.sendMessageQueue = sendMessageQueue;
         this.attackHandler = attackHandler;
@@ -46,7 +46,7 @@ public class SendMessageQueueConsumer implements Runnable
                 attackHandler.executeCallback(webSocketConnectionMessage);
             } catch (InterruptedException e)
             {
-                logging.logToError("Failed to take message from sendMessageQueue");
+                logger.logError("Failed to take message from sendMessageQueue");
             }
         }
     }

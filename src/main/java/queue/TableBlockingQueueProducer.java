@@ -1,23 +1,23 @@
 package queue;
 
-import burp.api.montoya.logging.Logging;
 import data.ConnectionMessage;
+import logger.Logger;
 import org.python.core.PyObject;
 
 import java.util.concurrent.BlockingQueue;
 
 public class TableBlockingQueueProducer extends PyObject
 {
-    private final Logging logging;
+    private final Logger logger;
     private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
 
     public TableBlockingQueueProducer(
-            Logging logging,
+            Logger logger,
             BlockingQueue<ConnectionMessage> tableBlockingQueue
     )
     {
 
-        this.logging = logging;
+        this.logger = logger;
         this.tableBlockingQueue = tableBlockingQueue;
     }
 
@@ -29,7 +29,7 @@ public class TableBlockingQueueProducer extends PyObject
         }
         catch (InterruptedException e)
         {
-            logging.logToError("Failed to insert Server to Client message into tableBlockingQueue.");
+            logger.logError("Failed to insert Server to Client message into tableBlockingQueue.");
         }
     }
 }
