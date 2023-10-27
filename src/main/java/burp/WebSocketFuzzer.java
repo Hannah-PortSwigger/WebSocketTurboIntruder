@@ -6,10 +6,9 @@ import burp.api.montoya.extension.Extension;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.menu.BasicMenuItem;
-import burp.api.montoya.ui.menu.Menu;
-import burp.api.montoya.ui.menu.MenuItem;
 import burp.api.montoya.websocket.WebSockets;
+import logger.Logger;
+import logger.LoggerLevel;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -37,7 +36,9 @@ public class WebSocketFuzzer implements BurpExtension
 
         initializeDefaultDirectory(logging, persistence);
 
-        userInterface.menuBar().registerMenu(generateMenu(logging, persistence, frameList));
+        Logger logger = new Logger(logging);
+        JMenu menu = generateMenu(logger, persistence, frameList);
+        userInterface.menuBar().registerMenu(menu);
 
         userInterface.registerContextMenuItemsProvider(new WebSocketContextMenuItemsProvider(logging, userInterface, persistence, websockets, frameList));
 
@@ -55,22 +56,24 @@ public class WebSocketFuzzer implements BurpExtension
         }
     }
 
-    private Menu generateMenu(Logging logging, Persistence persistence, List<JFrame> frameList)
+    private JMenu generateMenu(Logger logger, Persistence persistence, List<JFrame> frameList)
     {
-        MenuItem resetDefaultScriptsMenuItem = BasicMenuItem
-                .basicMenuItem("Reset scripts directory to default.")
-                .withAction(() -> {
-                    persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
-                    logging.logToOutput("Scripts directory rest to " + DEFAULT_SCRIPT_DIRECTORY);
-                });
+        JMenuItem resetDefaultScriptsMenuItem = new JMenuItem("Reset scripts directory to default.");
+        resetDefaultScriptsMenuItem.addActionListener(l -> {
+            persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
+            logger.logOutput(LoggerLevel.DEBUG, "Scripts directory reset to " + DEFAULT_SCRIPT_DIRECTORY);
+        });
 
-        MenuItem closeAllFramesMenuItem = BasicMenuItem
-                .basicMenuItem("Close all " + EXTENSION_NAME + " windows.")
-                .withAction(() -> {
-                    closeAllFrames(frameList);
-                    logging.logToOutput("All " + EXTENSION_NAME + " windows closed.");
-                });
+        JMenuItem closeAllFramesMenuItem = new JMenuItem("Close all " + EXTENSION_NAME + " windows.");
+        closeAllFramesMenuItem.addActionListener(l -> {
+            closeAllFrames(frameList);
+            logger.logOutput(LoggerLevel.DEBUG, "All " + EXTENSION_NAME + " windows closed.");
+        });
 
-        return Menu.menu(EXTENSION_NAME).withMenuItems(resetDefaultScriptsMenuItem, closeAllFramesMenuItem);
+        JMenu menu = new JMenu(EXTENSION_NAME);
+        menu.add(resetDefaultScriptsMenuItem);
+        menu.add(closeAllFramesMenuItem);
+
+        return menu;
     }
 }
