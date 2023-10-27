@@ -1,6 +1,5 @@
 package burp;
 
-import attack.AttackHandler;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.websocket.BinaryMessage;
 import burp.api.montoya.websocket.TextMessage;
@@ -9,35 +8,36 @@ import connection.WebSocketConnection;
 import data.WebSocketConnectionMessage;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.BlockingQueue;
 
 public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSocketMessageHandler
 {
     private final Logging logging;
-    private final AttackHandler attackHandler;
+    private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final WebSocketConnection connection;
-    private final ExecutorService executorService;
 
     public WebSocketExtensionWebSocketMessageHandler(
             Logging logging,
-            AttackHandler attackHandler,
+            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             WebSocketConnection connection
     )
     {
         this.logging = logging;
-        this.attackHandler = attackHandler;
+        this.sendMessageQueue = sendMessageQueue;
         this.connection = connection;
-
-        executorService = Executors.newFixedThreadPool(1);
     }
 
     @Override
     public void textMessageReceived(TextMessage textMessage)
     {
-        WebSocketConnectionMessage websocketConnectionMessage = new WebSocketConnectionMessage(textMessage.payload(), textMessage.direction(), LocalDateTime.now(), null, connection);
-
-        executorService.execute(() -> attackHandler.executeCallback(websocketConnectionMessage));
+        try
+        {
+            sendMessageQueue.put(new WebSocketConnectionMessage(textMessage.payload(), textMessage.direction(), LocalDateTime.now(), null, connection));
+        }
+        catch (InterruptedException e)
+        {
+            logging.logToError("Failed to put message on queue.");
+        }
     }
 
     @Override

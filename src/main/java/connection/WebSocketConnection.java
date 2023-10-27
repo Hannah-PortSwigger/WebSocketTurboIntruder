@@ -1,6 +1,5 @@
 package connection;
 
-import attack.AttackHandler;
 import burp.WebSocketExtensionWebSocketMessageHandler;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
@@ -19,7 +18,6 @@ public class WebSocketConnection implements Connection
     private final Logging logging;
     private final WebSockets webSockets;
     private final AtomicBoolean isProcessing;
-    private final AttackHandler attackHandler;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final ExtensionWebSocket extensionWebSocket;
 
@@ -27,7 +25,6 @@ public class WebSocketConnection implements Connection
             Logging logging,
             WebSockets webSockets,
             AtomicBoolean isProcessing,
-            AttackHandler attackHandler,
             WebSocketMessage baseWebSocketMessage,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
     )
@@ -35,7 +32,6 @@ public class WebSocketConnection implements Connection
         this.logging = logging;
         this.webSockets = webSockets;
         this.isProcessing = isProcessing;
-        this.attackHandler = attackHandler;
         this.sendMessageQueue = sendMessageQueue;
 
         extensionWebSocket = createExtensionWebSocket(baseWebSocketMessage);
@@ -45,12 +41,9 @@ public class WebSocketConnection implements Connection
     public void queue(String payload)
     {
         if (isProcessing.get())
-        {
-            WebSocketConnectionMessage webSocketConnectionMessage = new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), null, this);
-
-            try
+        {try
             {
-                sendMessageQueue.put(webSocketConnectionMessage);
+                sendMessageQueue.put(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), null, this));
             }
             catch (InterruptedException e)
             {
@@ -74,7 +67,7 @@ public class WebSocketConnection implements Connection
         {
             extensionWebSocket = extensionWebSocketCreation.webSocket().get();
 
-            extensionWebSocket.registerMessageHandler(new WebSocketExtensionWebSocketMessageHandler(logging, attackHandler, this));
+            extensionWebSocket.registerMessageHandler(new WebSocketExtensionWebSocketMessageHandler(logging, sendMessageQueue, this));
         }
         else
         {

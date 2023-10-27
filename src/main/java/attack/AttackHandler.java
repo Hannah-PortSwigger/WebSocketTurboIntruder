@@ -34,7 +34,7 @@ public class AttackHandler
 
         interpreter.set("base_websocket", baseWebSocketMessage);
 
-        interpreter.set("websocket_connection", new ConnectionFactory(logging, webSockets, isProcessing, this, sendMessageQueue));
+        interpreter.set("websocket_connection", new ConnectionFactory(logging, webSockets, isProcessing, sendMessageQueue));
 
         interpreter.set("results_table", new TableBlockingQueueProducer(logging, tableBlockingQueue));
     }

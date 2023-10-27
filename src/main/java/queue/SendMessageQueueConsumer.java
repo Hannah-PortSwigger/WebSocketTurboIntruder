@@ -2,6 +2,7 @@ package queue;
 
 import attack.AttackHandler;
 import burp.api.montoya.logging.Logging;
+import burp.api.montoya.websocket.Direction;
 import data.WebSocketConnectionMessage;
 
 import java.util.concurrent.BlockingQueue;
@@ -37,7 +38,10 @@ public class SendMessageQueueConsumer implements Runnable
             {
                 WebSocketConnectionMessage webSocketConnectionMessage = sendMessageQueue.take();
 
-                webSocketConnectionMessage.send();
+                if (webSocketConnectionMessage.getDirection() == Direction.CLIENT_TO_SERVER)
+                {
+                    webSocketConnectionMessage.send();
+                }
 
                 attackHandler.executeCallback(webSocketConnectionMessage);
             } catch (InterruptedException e)
