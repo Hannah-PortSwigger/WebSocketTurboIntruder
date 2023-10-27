@@ -31,30 +31,46 @@ public class WebSocketFuzzer implements BurpExtension
         Logging logging = api.logging();
         WebSockets websockets = api.websockets();
 
-        extension.setName(EXTENSION_NAME);
-
         List<JFrame> frameList = new ArrayList<>();
 
+        extension.setName(EXTENSION_NAME);
 
-        if (persistence.preferences().getString("websocketsScriptsPath") == null)
-        {
-            persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
-        }
+        initializeDefaultDirectory(logging, persistence);
 
-        MenuItem resetDefaultScriptsMenuItem = BasicMenuItem
-                .basicMenuItem("Reset scripts directory to default.")
-                .withAction(() -> persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY));
-
-        MenuItem closeAllFramesMenuItem = BasicMenuItem
-                .basicMenuItem("Close all " + EXTENSION_NAME + " windows.")
-                .withAction(() -> closeAllFrames(frameList));
-
-        userInterface.menuBar().registerMenu(Menu.menu(EXTENSION_NAME).withMenuItems(resetDefaultScriptsMenuItem, closeAllFramesMenuItem));
+        userInterface.menuBar().registerMenu(generateMenu(logging, persistence, frameList));
 
         userInterface.registerContextMenuItemsProvider(new WebSocketContextMenuItemsProvider(logging, userInterface, persistence, websockets, frameList));
 
         extension.registerUnloadingHandler(new WebSocketExtensionUnloadingHandler(frameList));
 
         logging.logToOutput(EXTENSION_NAME + " - Loaded");
+    }
+
+    private void initializeDefaultDirectory(Logging logging, Persistence persistence)
+    {
+        if (persistence.preferences().getString("websocketsScriptsPath") == null)
+        {
+            persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
+            logging.logToOutput("Default script directory initialized.");
+        }
+    }
+
+    private Menu generateMenu(Logging logging, Persistence persistence, List<JFrame> frameList)
+    {
+        MenuItem resetDefaultScriptsMenuItem = BasicMenuItem
+                .basicMenuItem("Reset scripts directory to default.")
+                .withAction(() -> {
+                    persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
+                    logging.logToOutput("Scripts directory rest to " + DEFAULT_SCRIPT_DIRECTORY);
+                });
+
+        MenuItem closeAllFramesMenuItem = BasicMenuItem
+                .basicMenuItem("Close all " + EXTENSION_NAME + " windows.")
+                .withAction(() -> {
+                    closeAllFrames(frameList);
+                    logging.logToOutput("All " + EXTENSION_NAME + " windows closed.");
+                });
+
+        return Menu.menu(EXTENSION_NAME).withMenuItems(resetDefaultScriptsMenuItem, closeAllFramesMenuItem);
     }
 }
