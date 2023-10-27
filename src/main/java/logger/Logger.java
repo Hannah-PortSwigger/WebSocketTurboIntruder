@@ -12,7 +12,7 @@ public class Logger
     public Logger(Logging logging)
     {
         this.logging = logging;
-        currentLoggerLevel = LoggerLevel.DEBUG;
+        currentLoggerLevel = LoggerLevel.DEFAULT;
     }
 
     public void setLogLevel(LoggerLevel loggerLevel)
@@ -22,10 +22,7 @@ public class Logger
 
     public void logOutput(LoggerLevel loggerLevel, String output)
     {
-        if (currentLoggerLevel == LoggerLevel.DEBUG || (currentLoggerLevel == LoggerLevel.ERROR_ONLY && loggerLevel == LoggerLevel.ERROR_ONLY))
-        {
-            logging.logToOutput(output);
-        }
+        logging.logToOutput(output);
     }
 
     public void logError(String output)

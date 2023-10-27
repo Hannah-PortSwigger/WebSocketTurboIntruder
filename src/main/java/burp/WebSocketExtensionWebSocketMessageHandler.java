@@ -44,6 +44,6 @@ public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSo
     @Override
     public void binaryMessageReceived(BinaryMessage binaryMessage)
     {
-        logger.logOutput(LoggerLevel.ERROR_ONLY, "Unhandled binary message received");
+        logger.logOutput(LoggerLevel.ERROR, "Unhandled binary message received");
     }
 }
