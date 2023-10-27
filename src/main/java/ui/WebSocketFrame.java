@@ -61,9 +61,7 @@ public class WebSocketFrame extends JFrame
 
     private void initComponents()
     {
-        //TODO decide which title is more useful to the user
-        String titleString = WebSocketFuzzer.EXTENSION_NAME + " - " + webSocketMessage.upgradeRequest().httpService().host();
-//            String titleString = WebSocketFuzzer.EXTENSION_NAME + " - " + webSocketMessage.upgradeRequest().url();
+        String titleString = WebSocketFuzzer.EXTENSION_NAME + " - " + webSocketMessage.upgradeRequest().url();
 
         this.setTitle(titleString);
         this.setPreferredSize(new Dimension(800, 600));

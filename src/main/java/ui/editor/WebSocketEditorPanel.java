@@ -292,6 +292,7 @@ public class WebSocketEditorPanel extends JPanel
 
             SwingUtilities.invokeLater(() -> cardLayout.show(cardDeck, "attackPanel"));
         });
+
         return attackButton;
     }
 }
