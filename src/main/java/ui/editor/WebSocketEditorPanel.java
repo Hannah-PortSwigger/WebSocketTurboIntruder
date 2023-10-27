@@ -25,7 +25,6 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 public class WebSocketEditorPanel extends JPanel
@@ -147,13 +146,6 @@ public class WebSocketEditorPanel extends JPanel
         JButton selectScriptsDirectoryButton = getScriptsDirectoryButton();
         buttonPanel.add(selectScriptsDirectoryButton);
 
-//        JButton saveButton = new JButton("Save");
-//        saveButton.setEnabled(false);
-//        saveButton.addActionListener(l -> {
-//            //TODO add save functionality
-//        });
-//        buttonPanel.add(saveButton);
-
         return buttonPanel;
     }
 
@@ -161,7 +153,6 @@ public class WebSocketEditorPanel extends JPanel
     {
         List<Path> pathList = getPathList();
 
-        //TODO filter out top level directory file that doesn't contain any content
         return new JComboBox<>(pathList.toArray(Path[]::new));
     }
 
@@ -287,9 +278,17 @@ public class WebSocketEditorPanel extends JPanel
 
             String jythonCode = rSyntaxTextArea.getText();
 
-            Executors.newSingleThreadExecutor().execute(() -> attackHandler.executeJython(payload, jythonCode));
-
-            //TODO if anything goes wrong, prevent it from going to the attack panel
+            new Thread(() -> {
+                try
+                {
+                    attackHandler.executeJython(payload, jythonCode);
+                }
+                catch (Exception e)
+                {
+                    JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+                    logging.logToError("Jython code error. Please review.\r\n" + e);
+                }
+            }).start();
 
             SwingUtilities.invokeLater(() -> cardLayout.show(cardDeck, "attackPanel"));
         });
