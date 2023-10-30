@@ -4,6 +4,7 @@ import attack.AttackHandler;
 import burp.api.montoya.websocket.Direction;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
+import logger.LoggerLevel;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,7 +47,7 @@ public class SendMessageQueueConsumer implements Runnable
                 attackHandler.executeCallback(webSocketConnectionMessage);
             } catch (InterruptedException e)
             {
-                logger.logError("Failed to take message from sendMessageQueue");
+                logger.logError(LoggerLevel.ERROR, "Failed to take message from sendMessageQueue");
             }
         }
     }

@@ -37,7 +37,7 @@ public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSo
         }
         catch (InterruptedException e)
         {
-            logger.logError("Failed to put message on queue.");
+            logger.logError(LoggerLevel.ERROR, "Failed to put message on queue.");
         }
     }
 

@@ -8,6 +8,7 @@ import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import logger.Logger;
+import logger.LoggerLevel;
 import org.apache.commons.io.IOUtils;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -263,7 +264,7 @@ public class WebSocketEditorPanel extends JPanel
             }
             catch (IOException e)
             {
-                logger.logError("Unable to apply dark theme.");
+                logger.logError(LoggerLevel.ERROR, "Unable to apply dark theme.");
             }
         }
 
@@ -286,7 +287,7 @@ public class WebSocketEditorPanel extends JPanel
                 catch (Exception e)
                 {
                     JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
-                    logger.logError("Jython code error. Please review.\r\n" + e);
+                    logger.logError(LoggerLevel.DEBUG, "Jython code error. Please review.\r\n" + e);
                 }
             }).start();
 

@@ -3,6 +3,6 @@ package logger;
 public enum LoggerLevel
 {
     DEFAULT,
-    INFO,
+    DEBUG,
     ERROR
 }

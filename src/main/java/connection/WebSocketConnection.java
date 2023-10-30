@@ -8,6 +8,7 @@ import burp.api.montoya.websocket.extension.ExtensionWebSocket;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketCreation;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
+import logger.LoggerLevel;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
@@ -47,7 +48,7 @@ public class WebSocketConnection implements Connection
             }
             catch (InterruptedException e)
             {
-                logger.logError("Failed to put message on sendMessageQueue");
+                logger.logError(LoggerLevel.ERROR, "Failed to put message on sendMessageQueue");
             }
         }
     }
@@ -71,7 +72,7 @@ public class WebSocketConnection implements Connection
         }
         else
         {
-            logger.logError("Failed to create websocket connection");
+            logger.logError(LoggerLevel.DEFAULT, "Failed to create websocket connection");
             extensionWebSocket = null;
         }
 

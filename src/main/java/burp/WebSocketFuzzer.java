@@ -50,7 +50,7 @@ public class WebSocketFuzzer implements BurpExtension
         if (persistence.preferences().getString("websocketsScriptsPath") == null)
         {
             persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
-            logger.logOutput(LoggerLevel.INFO, "Default script directory initialized.");
+            logger.logOutput(LoggerLevel.DEBUG, "Default script directory initialized.");
         }
     }
 
@@ -59,13 +59,13 @@ public class WebSocketFuzzer implements BurpExtension
         JMenuItem resetDefaultScriptsMenuItem = new JMenuItem("Reset scripts directory to default.");
         resetDefaultScriptsMenuItem.addActionListener(l -> {
             persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
-            logger.logOutput(LoggerLevel.INFO, "Scripts directory reset to " + DEFAULT_SCRIPT_DIRECTORY);
+            logger.logOutput(LoggerLevel.DEBUG, "Scripts directory reset to " + DEFAULT_SCRIPT_DIRECTORY);
         });
 
         JMenuItem closeAllFramesMenuItem = new JMenuItem("Close all " + EXTENSION_NAME + " windows.");
         closeAllFramesMenuItem.addActionListener(l -> {
             closeAllFrames(frameList);
-            logger.logOutput(LoggerLevel.INFO, "All " + EXTENSION_NAME + " windows closed.");
+            logger.logOutput(LoggerLevel.DEBUG, "All " + EXTENSION_NAME + " windows closed.");
         });
 
         JMenu menu = new JMenu(EXTENSION_NAME);
