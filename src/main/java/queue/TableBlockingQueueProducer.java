@@ -17,7 +17,6 @@ public class TableBlockingQueueProducer extends PyObject
             BlockingQueue<ConnectionMessage> tableBlockingQueue
     )
     {
-
         this.logger = logger;
         this.tableBlockingQueue = tableBlockingQueue;
     }

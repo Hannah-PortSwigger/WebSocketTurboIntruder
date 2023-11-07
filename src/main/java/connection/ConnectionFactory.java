@@ -12,24 +12,24 @@ public class ConnectionFactory
 {
     private final Logger logger;
     private final WebSockets webSockets;
-    private final AtomicBoolean isProcessing;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
+    private final AtomicBoolean isAttackRunning;
 
     public ConnectionFactory(
             Logger logger,
             WebSockets webSockets,
-            AtomicBoolean isProcessing,
-            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
+            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
+            AtomicBoolean isAttackRunning
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
-        this.isProcessing = isProcessing;
         this.sendMessageQueue = sendMessageQueue;
+        this.isAttackRunning = isAttackRunning;
     }
 
     public Connection create(WebSocketMessage baseWebSocketMessage)
     {
-        return new WebSocketConnection(logger, webSockets, isProcessing, baseWebSocketMessage, sendMessageQueue);
+        return new WebSocketConnection(logger, webSockets, sendMessageQueue, baseWebSocketMessage, isAttackRunning);
     }
 }

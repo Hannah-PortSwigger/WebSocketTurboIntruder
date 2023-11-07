@@ -18,22 +18,22 @@ public class WebSocketConnection implements Connection
 {
     private final Logger logger;
     private final WebSockets webSockets;
-    private final AtomicBoolean isProcessing;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
+    private final AtomicBoolean isAttackRunning;
     private final ExtensionWebSocket extensionWebSocket;
 
     WebSocketConnection(
             Logger logger,
             WebSockets webSockets,
-            AtomicBoolean isProcessing,
+            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             WebSocketMessage baseWebSocketMessage,
-            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
+            AtomicBoolean isAttackRunning
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
-        this.isProcessing = isProcessing;
         this.sendMessageQueue = sendMessageQueue;
+        this.isAttackRunning = isAttackRunning;
 
         extensionWebSocket = createExtensionWebSocket(baseWebSocketMessage);
     }
@@ -41,7 +41,7 @@ public class WebSocketConnection implements Connection
     @Override
     public void queue(String payload)
     {
-        if (isProcessing.get())
+        if (isAttackRunning.get())
         {try
             {
                 sendMessageQueue.put(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), null, this));

@@ -12,28 +12,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SendMessageQueueConsumer implements Runnable
 {
     private final Logger logger;
-    private final AtomicBoolean isProcessing;
-    private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final AttackHandler attackHandler;
+    private final AtomicBoolean isAttackRunning;
+    private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
 
     public SendMessageQueueConsumer(
             Logger logger,
-            AtomicBoolean isProcessing,
-            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
-            AttackHandler attackHandler
+            AttackHandler attackHandler,
+            AtomicBoolean isAttackRunning
     )
     {
         this.logger = logger;
-        this.isProcessing = isProcessing;
-        this.sendMessageQueue = sendMessageQueue;
         this.attackHandler = attackHandler;
+        this.isAttackRunning = isAttackRunning;
+
+        sendMessageQueue = attackHandler.getSendMessageQueue();
     }
 
 
     @Override
     public void run()
     {
-        while (isProcessing.get())
+        while (isAttackRunning.get())
         {
             try
             {

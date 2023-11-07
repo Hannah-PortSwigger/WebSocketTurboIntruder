@@ -14,25 +14,25 @@ public class TableBlockingQueueConsumer implements Runnable
     private final Logger logger;
     private final BlockingQueue<ConnectionMessage> queue;
     private final WebSocketMessageTableModel tableModel;
-    private final AtomicBoolean isRunning;
+    private final AtomicBoolean isAttackRunning;
 
     public TableBlockingQueueConsumer(
             Logger logger,
-            BlockingQueue<ConnectionMessage> queue,
             WebSocketMessageTableModel tableModel,
-            AtomicBoolean isRunning
+            BlockingQueue<ConnectionMessage> queue,
+            AtomicBoolean isAttackRunning
     )
     {
         this.logger = logger;
         this.queue = queue;
         this.tableModel = tableModel;
-        this.isRunning = isRunning;
+        this.isAttackRunning = isAttackRunning;
     }
 
     @Override
     public void run()
     {
-        while (isRunning.get())
+        while (isAttackRunning.get())
         {
             try
             {

@@ -10,6 +10,7 @@ import data.ConnectionMessage;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
 import ui.attack.WebSocketAttackPanel;
+import ui.attack.table.WebSocketMessageTableModel;
 import ui.editor.WebSocketEditorPanel;
 
 import javax.swing.*;
@@ -27,8 +28,8 @@ public class WebSocketFrame extends JFrame
     private final Persistence persistence;
     private final WebSockets webSockets;
     private final WebSocketMessage webSocketMessage;
-    private final AtomicBoolean isProcessing;
-    private final AtomicBoolean isRunning;
+    private final AtomicBoolean isAttackRunning;
+    private AttackHandler attackHandler;
 
     public WebSocketFrame(
             Logger logger,
@@ -44,8 +45,7 @@ public class WebSocketFrame extends JFrame
         this.webSockets = webSockets;
         this.webSocketMessage = webSocketMessage;
 
-        isProcessing = new AtomicBoolean(true);
-        isRunning = new AtomicBoolean(true);
+        isAttackRunning = new AtomicBoolean(true);
 
         initComponents();
 
@@ -54,7 +54,8 @@ public class WebSocketFrame extends JFrame
             @Override
             public void windowClosed(WindowEvent e)
             {
-                isRunning.set(false);
+                isAttackRunning.set(false);
+                attackHandler.shutdownConsumers();
             }
         });
     }
@@ -72,10 +73,12 @@ public class WebSocketFrame extends JFrame
         BlockingQueue<WebSocketConnectionMessage> sendMessageQueue = new LinkedBlockingQueue<>();
         BlockingQueue<ConnectionMessage> tableBlockingQueue = new LinkedBlockingQueue<>();
 
-        AttackHandler attackHandler = new AttackHandler(logger, webSockets, isProcessing, sendMessageQueue, tableBlockingQueue, webSocketMessage);
+        WebSocketMessageTableModel webSocketMessageTableModel = new WebSocketMessageTableModel();
 
-        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, persistence, cardLayout, cardDeck, attackHandler, webSocketMessage), "editorPanel");
-        cardDeck.add(new WebSocketAttackPanel(logger, userInterface, cardLayout, cardDeck, attackHandler, sendMessageQueue, tableBlockingQueue, isProcessing, isRunning), "attackPanel");
+        attackHandler = new AttackHandler(logger, webSockets, sendMessageQueue, tableBlockingQueue, webSocketMessageTableModel, webSocketMessage, isAttackRunning);
+
+        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, persistence, cardLayout, cardDeck, attackHandler), "editorPanel");
+        cardDeck.add(new WebSocketAttackPanel(userInterface, cardLayout, cardDeck, attackHandler), "attackPanel");
 
         this.getContentPane().add(cardDeck);
         this.pack();

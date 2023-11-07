@@ -5,7 +5,6 @@ import burp.WebSocketFuzzer;
 import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import logger.Logger;
 import logger.LoggerLevel;
@@ -36,9 +35,9 @@ public class WebSocketEditorPanel extends JPanel
     private final CardLayout cardLayout;
     private final JPanel cardDeck;
     private final AttackHandler attackHandler;
-    private final WebSocketMessage webSocketMessage;
     private JComboBox<Path> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
+    private JSpinner numberOfThreadsSpinner;
 
     public WebSocketEditorPanel(
             Logger logger,
@@ -46,8 +45,7 @@ public class WebSocketEditorPanel extends JPanel
             Persistence persistence,
             CardLayout cardLayout,
             JPanel cardDeck,
-            AttackHandler attackHandler,
-            WebSocketMessage webSocketMessage
+            AttackHandler attackHandler
     )
     {
         this.logger = logger;
@@ -56,7 +54,6 @@ public class WebSocketEditorPanel extends JPanel
         this.cardLayout = cardLayout;
         this.cardDeck = cardDeck;
         this.attackHandler = attackHandler;
-        this.webSocketMessage = webSocketMessage;
 
         this.setLayout(new BorderLayout());
 
@@ -74,7 +71,7 @@ public class WebSocketEditorPanel extends JPanel
     private Component getWebSocketMessageEditor()
     {
         webSocketsMessageEditor = userInterface.createWebSocketMessageEditor();
-        webSocketsMessageEditor.setContents(webSocketMessage.payload());
+        webSocketsMessageEditor.setContents(attackHandler.getBaseWebSocketMessage().payload());
 
         return webSocketsMessageEditor.uiComponent();
     }
@@ -141,11 +138,17 @@ public class WebSocketEditorPanel extends JPanel
         JPanel buttonPanel = new JPanel();
 
         scriptComboBox = getScriptComboBox();
-
         buttonPanel.add(scriptComboBox);
 
         JButton selectScriptsDirectoryButton = getScriptsDirectoryButton();
         buttonPanel.add(selectScriptsDirectoryButton);
+
+        JLabel threadsLabel = new JLabel("Number of threads:");
+        buttonPanel.add(threadsLabel);
+
+        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 0, 50, 1);
+        numberOfThreadsSpinner = new JSpinner(spinnerModel);
+        buttonPanel.add(numberOfThreadsSpinner);
 
         return buttonPanel;
     }
@@ -290,6 +293,8 @@ public class WebSocketEditorPanel extends JPanel
                     logger.logError(LoggerLevel.DEBUG, "Jython code error. Please review.\r\n" + e);
                 }
             }).start();
+
+            attackHandler.startConsumers((int) numberOfThreadsSpinner.getValue());
 
             SwingUtilities.invokeLater(() -> cardLayout.show(cardDeck, "attackPanel"));
         });

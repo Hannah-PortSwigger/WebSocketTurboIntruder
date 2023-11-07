@@ -17,7 +17,7 @@ public class Logger
     {
         this.logging = logging;
 
-        debugLogLevel  = false;
+        debugLogLevel  = true;
         errorLogLevel = true;
     }
 
