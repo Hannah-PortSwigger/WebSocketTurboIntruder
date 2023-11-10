@@ -68,9 +68,13 @@ public class WebSocketFuzzer implements BurpExtension
             logger.logOutput(LoggerLevel.DEBUG, "All " + EXTENSION_NAME + " windows closed.");
         });
 
+        JCheckBoxMenuItem loggingLevelDebug = new JCheckBoxMenuItem("Debug mode", logger.isDebugLogLevel());
+        loggingLevelDebug.addActionListener(l -> logger.setDebugLogLevel(loggingLevelDebug.getState()));
+
         JMenu menu = new JMenu(EXTENSION_NAME);
         menu.add(resetDefaultScriptsMenuItem);
         menu.add(closeAllFramesMenuItem);
+        menu.add(loggingLevelDebug);
 
         return menu;
     }
