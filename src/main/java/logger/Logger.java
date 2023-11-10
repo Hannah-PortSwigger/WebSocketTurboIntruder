@@ -11,13 +11,13 @@ public class Logger
 {
     private final Logging logging;
     private boolean debugLogLevel;
-    private boolean errorLogLevel;
+    private final boolean errorLogLevel;
 
     public Logger(Logging logging)
     {
         this.logging = logging;
 
-        debugLogLevel  = true;
+        debugLogLevel  = false;
         errorLogLevel = true;
     }
 
@@ -26,19 +26,9 @@ public class Logger
         return debugLogLevel;
     }
 
-    public boolean isErrorLogLevel()
-    {
-        return errorLogLevel;
-    }
-
     public void setDebugLogLevel(boolean value)
     {
         debugLogLevel = value;
-    }
-
-    public void setErrorLogLevel(boolean value)
-    {
-        errorLogLevel = value;
     }
 
     public void logOutput(LoggerLevel loggerLevel, String output)
@@ -73,11 +63,6 @@ public class Logger
         {
             return false;
         }
-        else if (outputLogLevel.equals(ERROR) && !errorLogLevel)
-        {
-            return false;
-        }
-
-        return true;
+        else return !outputLogLevel.equals(ERROR) || errorLogLevel;
     }
 }
