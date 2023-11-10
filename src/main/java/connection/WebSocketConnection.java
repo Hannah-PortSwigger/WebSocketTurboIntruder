@@ -53,6 +53,21 @@ public class WebSocketConnection implements Connection
         }
     }
 
+    @Override
+    public void queue(String payload, String comment)
+    {
+        if (isAttackRunning.get())
+        {try
+            {
+                sendMessageQueue.put(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), comment, this));
+            }
+            catch (InterruptedException e)
+            {
+                logger.logError(LoggerLevel.ERROR, "Failed to put message on sendMessageQueue");
+            }
+        }
+    }
+
     public void sendMessage(String payload)
     {
         extensionWebSocket.sendTextMessage(payload);
