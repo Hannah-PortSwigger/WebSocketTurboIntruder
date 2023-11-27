@@ -50,7 +50,7 @@ public class WebSocketConnection implements Connection
             }
             catch (InterruptedException e)
             {
-                logger.logError(LoggerLevel.ERROR, "Failed to put message on sendMessageQueue");
+                logger.logError("Failed to put message on sendMessageQueue");
             }
         }
     }
@@ -66,7 +66,7 @@ public class WebSocketConnection implements Connection
             }
             catch (InterruptedException e)
             {
-                logger.logError(LoggerLevel.ERROR, "Failed to put message on sendMessageQueue");
+                logger.logError("Failed to put message on sendMessageQueue");
             }
         }
     }
@@ -97,7 +97,7 @@ public class WebSocketConnection implements Connection
         }
         else
         {
-            logger.logError(LoggerLevel.DEFAULT, "Failed to create websocket connection");
+            logger.logError("Failed to create websocket connection");
             extensionWebSocket = null;
         }
 

@@ -62,7 +62,6 @@ public class AttackHandler
         interpreter.set("upgrade_request", upgradeRequest);
         interpreter.exec(editorCodeString);
         interpreter.exec("queue_websockets(upgrade_request, payload)");
-        logger.logOutput(LoggerLevel.DEBUG, "request: "  + upgradeRequest.toString());
     }
 
     public void executeCallback(WebSocketConnectionMessage webSocketConnectionMessage)
