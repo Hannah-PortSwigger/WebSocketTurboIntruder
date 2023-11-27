@@ -10,7 +10,6 @@ import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import logger.Logger;
-import org.apache.commons.io.IOUtils;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -23,6 +22,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,12 +116,13 @@ public class WebSocketEditorPanel extends JPanel
                 {
                     if (stream != null)
                     {
-                        data = IOUtils.toString(stream);
+                        data = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
                     }
                 } catch (IOException e)
                 {
                     throw new RuntimeException(e);
                 }
+
                 rSyntaxTextArea.setText(data);
             }
             else
