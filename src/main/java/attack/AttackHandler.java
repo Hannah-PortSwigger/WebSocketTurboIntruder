@@ -46,12 +46,13 @@ public class AttackHandler
         this.tableBlockingQueue = tableBlockingQueue;
         this.webSocketMessageTableModel = webSocketMessageTableModel;
         this.isAttackRunning = isAttackRunning;
+
         interpreter = new PythonInterpreter();
+
         interpreter.setOut(logger.outputStream());
         interpreter.setErr(logger.errorStream());
 
         interpreter.set("websocket_connection", new ConnectionFactory(logger, webSockets, sendMessageQueue, isAttackRunning));
-
         interpreter.set("results_table", new TableBlockingQueueProducer(logger, tableBlockingQueue));
     }
 
@@ -61,7 +62,7 @@ public class AttackHandler
         interpreter.set("upgrade_request", upgradeRequest);
         interpreter.exec(editorCodeString);
         interpreter.exec("queue_websockets(upgrade_request, payload)");
-        logger.logOutput(LoggerLevel.DEFAULT, "request: "  + upgradeRequest.toString());
+        logger.logOutput(LoggerLevel.DEBUG, "request: "  + upgradeRequest.toString());
     }
 
     public void executeCallback(WebSocketConnectionMessage webSocketConnectionMessage)

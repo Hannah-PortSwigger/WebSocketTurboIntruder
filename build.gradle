@@ -21,6 +21,9 @@ dependencies {
 }
 
 tasks.register('fatJar', Jar) {
+    manifest {
+        attributes 'implementation-version': "${version}"
+    }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar

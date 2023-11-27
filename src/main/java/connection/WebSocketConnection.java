@@ -59,7 +59,8 @@ public class WebSocketConnection implements Connection
     public void queue(String payload, String comment)
     {
         if (isAttackRunning.get())
-        {try
+        {
+            try
             {
                 sendMessageQueue.put(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), comment, this));
             }
