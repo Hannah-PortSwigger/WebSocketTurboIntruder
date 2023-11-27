@@ -1,6 +1,6 @@
 package attack;
 
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
+import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.websocket.Direction;
 import burp.api.montoya.websocket.WebSockets;
 import connection.Connection;
@@ -27,7 +27,6 @@ public class AttackHandler
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
     private final WebSocketMessageTableModel webSocketMessageTableModel;
-    private final WebSocketMessage baseWebSocketMessage;
     private final AtomicBoolean isAttackRunning;
     private final PythonInterpreter interpreter;
     private ExecutorService sendMessageExecutorService;
@@ -39,7 +38,6 @@ public class AttackHandler
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             BlockingQueue<ConnectionMessage> tableBlockingQueue,
             WebSocketMessageTableModel webSocketMessageTableModel,
-            WebSocketMessage baseWebSocketMessage,
             AtomicBoolean isAttackRunning
     )
     {
@@ -47,24 +45,23 @@ public class AttackHandler
         this.sendMessageQueue = sendMessageQueue;
         this.tableBlockingQueue = tableBlockingQueue;
         this.webSocketMessageTableModel = webSocketMessageTableModel;
-        this.baseWebSocketMessage = baseWebSocketMessage;
         this.isAttackRunning = isAttackRunning;
         interpreter = new PythonInterpreter();
         interpreter.setOut(logger.outputStream());
         interpreter.setErr(logger.errorStream());
-
-        interpreter.set("base_websocket", baseWebSocketMessage);
 
         interpreter.set("websocket_connection", new ConnectionFactory(logger, webSockets, sendMessageQueue, isAttackRunning));
 
         interpreter.set("results_table", new TableBlockingQueueProducer(logger, tableBlockingQueue));
     }
 
-    public void executeJython(String payload, String editorCodeString)
+    public void executeJython(String payload, HttpRequest upgradeRequest, String editorCodeString)
     {
         interpreter.set("payload", payload);
+        interpreter.set("upgrade_request", upgradeRequest);
         interpreter.exec(editorCodeString);
-        interpreter.exec("queue_websockets(base_websocket, payload)");
+        interpreter.exec("queue_websockets(upgrade_request, payload)");
+        logger.logOutput(LoggerLevel.DEFAULT, "request: "  + upgradeRequest.toString());
     }
 
     public void executeCallback(WebSocketConnectionMessage webSocketConnectionMessage)
@@ -92,11 +89,6 @@ public class AttackHandler
     public WebSocketMessageTableModel getWebSocketMessageTableModel()
     {
         return webSocketMessageTableModel;
-    }
-
-    public WebSocketMessage getBaseWebSocketMessage()
-    {
-        return baseWebSocketMessage;
     }
 
     public AtomicBoolean getIsAttackRunning()

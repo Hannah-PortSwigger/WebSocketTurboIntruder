@@ -1,6 +1,6 @@
-def queue_websockets(base_websocket, payload):
-    connection1 = websocket_connection.create(base_websocket)
-    connection2 = websocket_connection.create(base_websocket)
+def queue_websockets(upgrade_request, payload):
+    connection1 = websocket_connection.create(upgrade_request)
+    connection2 = websocket_connection.create(upgrade_request)
 
     for i in range(10):
         connection1.queue(payload)

@@ -1,7 +1,7 @@
 package connection;
 
 import burp.WebSocketExtensionWebSocketMessageHandler;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
+import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.websocket.Direction;
 import burp.api.montoya.websocket.WebSockets;
 import burp.api.montoya.websocket.extension.ExtensionWebSocket;
@@ -19,6 +19,7 @@ public class WebSocketConnection implements Connection
     private final Logger logger;
     private final WebSockets webSockets;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
+    private final HttpRequest upgradeRequest;
     private final AtomicBoolean isAttackRunning;
     private final ExtensionWebSocket extensionWebSocket;
 
@@ -26,16 +27,17 @@ public class WebSocketConnection implements Connection
             Logger logger,
             WebSockets webSockets,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
-            WebSocketMessage baseWebSocketMessage,
+            HttpRequest upgradeRequest,
             AtomicBoolean isAttackRunning
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
         this.sendMessageQueue = sendMessageQueue;
+        this.upgradeRequest = upgradeRequest;
         this.isAttackRunning = isAttackRunning;
 
-        extensionWebSocket = createExtensionWebSocket(baseWebSocketMessage);
+        extensionWebSocket = createExtensionWebSocket(upgradeRequest);
     }
 
     @Override
@@ -68,16 +70,23 @@ public class WebSocketConnection implements Connection
         }
     }
 
+    @Override
+    public HttpRequest upgradeRequest()
+    {
+        return upgradeRequest;
+    }
+
     public void sendMessage(String payload)
     {
         extensionWebSocket.sendTextMessage(payload);
     }
 
-    private ExtensionWebSocket createExtensionWebSocket(WebSocketMessage baseWebSocketMessage)
+    private ExtensionWebSocket createExtensionWebSocket(HttpRequest upgradeRequest)
     {
         ExtensionWebSocket extensionWebSocket;
 
-        ExtensionWebSocketCreation extensionWebSocketCreation = webSockets.createWebSocket(baseWebSocketMessage.upgradeRequest());
+        ExtensionWebSocketCreation extensionWebSocketCreation = webSockets.createWebSocket(upgradeRequest);
+        logger.logOutput(LoggerLevel.DEBUG, "WebSocketConnection Upgrade request: " + upgradeRequest.toString());
 
         if (extensionWebSocketCreation.webSocket().isPresent())
         {

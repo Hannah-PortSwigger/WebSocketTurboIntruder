@@ -75,9 +75,9 @@ public class WebSocketFrame extends JFrame
 
         WebSocketMessageTableModel webSocketMessageTableModel = new WebSocketMessageTableModel();
 
-        attackHandler = new AttackHandler(logger, webSockets, sendMessageQueue, tableBlockingQueue, webSocketMessageTableModel, webSocketMessage, isAttackRunning);
+        attackHandler = new AttackHandler(logger, webSockets, sendMessageQueue, tableBlockingQueue, webSocketMessageTableModel, isAttackRunning);
 
-        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, persistence, cardLayout, cardDeck, attackHandler), "editorPanel");
+        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, persistence, cardLayout, cardDeck, attackHandler, webSocketMessage), "editorPanel");
         cardDeck.add(new WebSocketAttackPanel(userInterface, cardLayout, cardDeck, attackHandler), "attackPanel");
 
         this.getContentPane().add(cardDeck);
