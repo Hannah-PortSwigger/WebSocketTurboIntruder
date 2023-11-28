@@ -5,20 +5,16 @@ import burp.api.montoya.logging.Logging;
 import java.io.OutputStream;
 
 import static logger.LoggerLevel.DEBUG;
-import static logger.LoggerLevel.ERROR;
 
 public class Logger
 {
     private final Logging logging;
     private boolean debugLogLevel;
-    private final boolean errorLogLevel;
 
     public Logger(Logging logging)
     {
         this.logging = logging;
-
         debugLogLevel  = false;
-        errorLogLevel = true;
     }
 
     public boolean isDebugLogLevel()
@@ -39,12 +35,9 @@ public class Logger
         }
     }
 
-    public void logError(LoggerLevel loggerLevel, String output)
+    public void logError(String output)
     {
-        if (isValid(loggerLevel))
-        {
-            logging.logToError(output);
-        }
+        logging.logToError(output);
     }
 
     public OutputStream outputStream()
@@ -59,10 +52,6 @@ public class Logger
     
     private boolean isValid(LoggerLevel outputLogLevel)
     {
-        if (outputLogLevel.equals(DEBUG) && !debugLogLevel)
-        {
-            return false;
-        }
-        else return !outputLogLevel.equals(ERROR) || errorLogLevel;
+        return !outputLogLevel.equals(DEBUG) || debugLogLevel;
     }
 }

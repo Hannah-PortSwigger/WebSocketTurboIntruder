@@ -8,12 +8,11 @@ import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.websocket.WebSockets;
 import logger.Logger;
 import logger.LoggerLevel;
+import utils.Utilities;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static utils.Utilities.closeAllFrames;
 
 public class WebSocketFuzzer implements BurpExtension
 {
@@ -26,56 +25,22 @@ public class WebSocketFuzzer implements BurpExtension
         Extension extension = api.extension();
         Persistence persistence = api.persistence();
         UserInterface userInterface = api.userInterface();
-        Logger logger = new Logger(api.logging());
         WebSockets websockets = api.websockets();
+
+        Logger logger = new Logger(api.logging());
+
+        Utilities.initializeDefaultDirectory(logger, persistence);
 
         List<JFrame> frameList = new ArrayList<>();
 
-        extension.setName(EXTENSION_NAME);
-
-        initializeDefaultDirectory(logger, persistence);
-
-        JMenu menu = generateMenu(logger, persistence, frameList);
+        JMenu menu = Utilities.generateMenu(logger, persistence, frameList);
         userInterface.menuBar().registerMenu(menu);
 
         userInterface.registerContextMenuItemsProvider(new WebSocketContextMenuItemsProvider(logger, userInterface, persistence, websockets, frameList));
-
         extension.registerUnloadingHandler(new WebSocketExtensionUnloadingHandler(frameList));
 
-        logger.logOutput(LoggerLevel.DEFAULT, EXTENSION_NAME + " - Loaded");
-    }
-
-    private void initializeDefaultDirectory(Logger logger, Persistence persistence)
-    {
-        if (persistence.preferences().getString("websocketsScriptsPath") == null)
-        {
-            persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
-            logger.logOutput(LoggerLevel.DEBUG, "Default script directory initialized.");
-        }
-    }
-
-    private JMenu generateMenu(Logger logger, Persistence persistence, List<JFrame> frameList)
-    {
-        JMenuItem resetDefaultScriptsMenuItem = new JMenuItem("Reset scripts directory to default.");
-        resetDefaultScriptsMenuItem.addActionListener(l -> {
-            persistence.preferences().setString("websocketsScriptsPath", DEFAULT_SCRIPT_DIRECTORY);
-            logger.logOutput(LoggerLevel.DEBUG, "Scripts directory reset to " + DEFAULT_SCRIPT_DIRECTORY);
-        });
-
-        JMenuItem closeAllFramesMenuItem = new JMenuItem("Close all " + EXTENSION_NAME + " windows.");
-        closeAllFramesMenuItem.addActionListener(l -> {
-            closeAllFrames(frameList);
-            logger.logOutput(LoggerLevel.DEBUG, "All " + EXTENSION_NAME + " windows closed.");
-        });
-
-        JCheckBoxMenuItem loggingLevelDebug = new JCheckBoxMenuItem("Debug mode", logger.isDebugLogLevel());
-        loggingLevelDebug.addActionListener(l -> logger.setDebugLogLevel(loggingLevelDebug.getState()));
-
-        JMenu menu = new JMenu(EXTENSION_NAME);
-        menu.add(resetDefaultScriptsMenuItem);
-        menu.add(closeAllFramesMenuItem);
-        menu.add(loggingLevelDebug);
-
-        return menu;
+        extension.setName(EXTENSION_NAME);
+        String extensionVersion = WebSocketFuzzer.class.getPackage().getImplementationVersion();
+        logger.logOutput(LoggerLevel.DEFAULT, EXTENSION_NAME + " v" + extensionVersion);
     }
 }

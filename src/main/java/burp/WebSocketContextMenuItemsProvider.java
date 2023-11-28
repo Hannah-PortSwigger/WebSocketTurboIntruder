@@ -15,11 +15,11 @@ import java.util.List;
 
 public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvider
 {
-    private final List<JFrame> frameList;
     private final Logger logger;
     private final UserInterface userInterface;
     private final Persistence persistence;
     private final WebSockets webSockets;
+    private final List<JFrame> frameList;
 
     public WebSocketContextMenuItemsProvider(
             Logger logger,
@@ -36,6 +36,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
         this.frameList = frameList;
     }
 
+    @Override
     public List<Component> provideMenuItems(WebSocketContextMenuEvent event)
     {
         JMenuItem sendToContextMenuItem = new JMenuItem("Send to " + WebSocketFuzzer.EXTENSION_NAME);

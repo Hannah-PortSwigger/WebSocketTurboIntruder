@@ -6,7 +6,6 @@ import burp.api.montoya.websocket.extension.ExtensionWebSocketMessageHandler;
 import connection.WebSocketConnection;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
-import logger.LoggerLevel;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
@@ -37,13 +36,13 @@ public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSo
         }
         catch (InterruptedException e)
         {
-            logger.logError(LoggerLevel.ERROR, "Failed to put message on queue.");
+            logger.logError("Failed to put message on queue.");
         }
     }
 
     @Override
     public void binaryMessageReceived(BinaryMessage binaryMessage)
     {
-        logger.logOutput(LoggerLevel.ERROR, "Unhandled binary message received");
+        logger.logError("Unhandled binary message received");
     }
 }

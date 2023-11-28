@@ -2,7 +2,6 @@ package queue;
 
 import data.ConnectionMessage;
 import logger.Logger;
-import logger.LoggerLevel;
 import ui.attack.table.WebSocketMessageTableModel;
 
 import java.awt.*;
@@ -40,7 +39,7 @@ public class TableBlockingQueueConsumer implements Runnable
                 EventQueue.invokeLater(() -> tableModel.add(connectionMessage));
             } catch (InterruptedException e)
             {
-                logger.logError(LoggerLevel.ERROR, "Error taking from tableBlockingQueue.");
+                logger.logError("Error taking from tableBlockingQueue.");
             }
         }
     }

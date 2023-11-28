@@ -2,13 +2,14 @@ package ui.editor;
 
 import attack.AttackHandler;
 import burp.WebSocketFuzzer;
+import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
+import burp.api.montoya.ui.contextmenu.WebSocketMessage;
+import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import logger.Logger;
-import logger.LoggerLevel;
-import org.apache.commons.io.IOUtils;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,8 +37,10 @@ public class WebSocketEditorPanel extends JPanel
     private final CardLayout cardLayout;
     private final JPanel cardDeck;
     private final AttackHandler attackHandler;
+    private final WebSocketMessage originalWebSocketMessage;
     private JComboBox<Path> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
+    private HttpRequestEditor upgradeHttpMessageEditor;
     private JSpinner numberOfThreadsSpinner;
 
     public WebSocketEditorPanel(
@@ -45,8 +49,8 @@ public class WebSocketEditorPanel extends JPanel
             Persistence persistence,
             CardLayout cardLayout,
             JPanel cardDeck,
-            AttackHandler attackHandler
-    )
+            AttackHandler attackHandler,
+            WebSocketMessage originalWebSocketMessage)
     {
         this.logger = logger;
         this.userInterface = userInterface;
@@ -54,6 +58,7 @@ public class WebSocketEditorPanel extends JPanel
         this.cardLayout = cardLayout;
         this.cardDeck = cardDeck;
         this.attackHandler = attackHandler;
+        this.originalWebSocketMessage = originalWebSocketMessage;
 
         this.setLayout(new BorderLayout());
 
@@ -62,7 +67,10 @@ public class WebSocketEditorPanel extends JPanel
 
     private void initComponents()
     {
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, getWebSocketMessageEditor(), getPythonCodeEditor());
+        JSplitPane editableEditors = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
+        editableEditors.setResizeWeight(0.5);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
         splitPane.setResizeWeight(0.3);
 
         this.add(splitPane, BorderLayout.CENTER);
@@ -71,9 +79,17 @@ public class WebSocketEditorPanel extends JPanel
     private Component getWebSocketMessageEditor()
     {
         webSocketsMessageEditor = userInterface.createWebSocketMessageEditor();
-        webSocketsMessageEditor.setContents(attackHandler.getBaseWebSocketMessage().payload());
+        webSocketsMessageEditor.setContents(originalWebSocketMessage.payload());
 
         return webSocketsMessageEditor.uiComponent();
+    }
+
+    private Component getUpgradeHttpMessageEditor()
+    {
+        upgradeHttpMessageEditor = userInterface.createHttpRequestEditor();
+        upgradeHttpMessageEditor.setRequest(originalWebSocketMessage.upgradeRequest());
+
+        return upgradeHttpMessageEditor.uiComponent();
     }
 
     private Component getPythonCodeEditor()
@@ -100,12 +116,13 @@ public class WebSocketEditorPanel extends JPanel
                 {
                     if (stream != null)
                     {
-                        data = IOUtils.toString(stream);
+                        data = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
                     }
                 } catch (IOException e)
                 {
                     throw new RuntimeException(e);
                 }
+
                 rSyntaxTextArea.setText(data);
             }
             else
@@ -267,7 +284,7 @@ public class WebSocketEditorPanel extends JPanel
             }
             catch (IOException e)
             {
-                logger.logError(LoggerLevel.ERROR, "Unable to apply dark theme.");
+                logger.logError("Unable to apply dark theme.");
             }
         }
 
@@ -279,18 +296,19 @@ public class WebSocketEditorPanel extends JPanel
         JButton attackButton = new JButton("Attack");
         attackButton.addActionListener(l -> {
             String payload = webSocketsMessageEditor.getContents().toString();
+            HttpRequest upgradeRequest = upgradeHttpMessageEditor.getRequest();
 
             String jythonCode = rSyntaxTextArea.getText();
 
             new Thread(() -> {
                 try
                 {
-                    attackHandler.executeJython(payload, jythonCode);
+                    attackHandler.executeJython(payload, upgradeRequest, jythonCode);
                 }
                 catch (Exception e)
                 {
                     JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
-                    logger.logError(LoggerLevel.DEBUG, "Jython code error. Please review.\r\n" + e);
+                    logger.logError("Jython code error. Please review.\r\n" + e);
                 }
             }).start();
 

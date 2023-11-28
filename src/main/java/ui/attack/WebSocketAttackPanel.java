@@ -3,6 +3,7 @@ package ui.attack;
 import attack.AttackHandler;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
+import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import ui.attack.table.WebSocketMessageTable;
 
@@ -46,17 +47,26 @@ public class WebSocketAttackPanel extends JPanel
     private Component getWebSocketMessageDisplay()
     {
         WebSocketMessageEditor webSocketMessageEditor = getWebSocketMessageEditor();
-        return new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageTable(webSocketMessageEditor), webSocketMessageEditor.uiComponent());
+        HttpRequestEditor upgradeRequestEditor = getUpgradeRequestEditor();
+
+        JSplitPane webSocketInformationDisplay = new JSplitPane(JSplitPane.VERTICAL_SPLIT, webSocketMessageEditor.uiComponent(), upgradeRequestEditor.uiComponent());
+        webSocketInformationDisplay.setResizeWeight(0.5);
+        return new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageTable(webSocketMessageEditor, upgradeRequestEditor), webSocketInformationDisplay);
     }
 
-    private Component getWebSocketMessageTable(WebSocketMessageEditor webSocketMessageEditor)
+    private Component getWebSocketMessageTable(WebSocketMessageEditor webSocketMessageEditor, HttpRequestEditor upgradeRequestEditor)
     {
-        return new WebSocketMessageTable(attackHandler.getWebSocketMessageTableModel(), webSocketMessageEditor);
+        return new WebSocketMessageTable(attackHandler.getWebSocketMessageTableModel(), webSocketMessageEditor, upgradeRequestEditor);
     }
 
     private WebSocketMessageEditor getWebSocketMessageEditor()
     {
         return userInterface.createWebSocketMessageEditor(EditorOptions.READ_ONLY);
+    }
+
+    private HttpRequestEditor getUpgradeRequestEditor()
+    {
+        return userInterface.createHttpRequestEditor(EditorOptions.READ_ONLY);
     }
 
     private Component getHaltConfigureButton()

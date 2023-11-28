@@ -2,7 +2,6 @@ package queue;
 
 import data.ConnectionMessage;
 import logger.Logger;
-import logger.LoggerLevel;
 import org.python.core.PyObject;
 
 import java.util.concurrent.BlockingQueue;
@@ -29,7 +28,7 @@ public class TableBlockingQueueProducer extends PyObject
         }
         catch (InterruptedException e)
         {
-            logger.logError(LoggerLevel.ERROR, "Failed to insert Server to Client message into tableBlockingQueue.");
+            logger.logError("Failed to insert Server to Client message into tableBlockingQueue.");
         }
     }
 }

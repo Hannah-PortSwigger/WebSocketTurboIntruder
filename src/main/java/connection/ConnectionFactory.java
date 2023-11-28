@@ -1,6 +1,6 @@
 package connection;
 
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
+import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.websocket.WebSockets;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
@@ -28,8 +28,8 @@ public class ConnectionFactory
         this.isAttackRunning = isAttackRunning;
     }
 
-    public Connection create(WebSocketMessage baseWebSocketMessage)
+    public Connection create(HttpRequest upgradeRequest)
     {
-        return new WebSocketConnection(logger, webSockets, sendMessageQueue, baseWebSocketMessage, isAttackRunning);
+        return new WebSocketConnection(logger, webSockets, sendMessageQueue, upgradeRequest, isAttackRunning);
     }
 }
