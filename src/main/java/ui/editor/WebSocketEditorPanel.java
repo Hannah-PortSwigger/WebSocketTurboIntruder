@@ -1,14 +1,13 @@
 package ui.editor;
 
 import attack.AttackHandler;
-import burp.WebSocketFuzzer;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
+import config.FileLocationConfiguration;
 import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -33,7 +32,7 @@ public class WebSocketEditorPanel extends JPanel
 {
     private final Logger logger;
     private final UserInterface userInterface;
-    private final Persistence persistence;
+    private final FileLocationConfiguration fileLocationConfiguration;
     private final CardLayout cardLayout;
     private final JPanel cardDeck;
     private final AttackHandler attackHandler;
@@ -46,7 +45,7 @@ public class WebSocketEditorPanel extends JPanel
     public WebSocketEditorPanel(
             Logger logger,
             UserInterface userInterface,
-            Persistence persistence,
+            FileLocationConfiguration fileLocationConfiguration,
             CardLayout cardLayout,
             JPanel cardDeck,
             AttackHandler attackHandler,
@@ -54,7 +53,7 @@ public class WebSocketEditorPanel extends JPanel
     {
         this.logger = logger;
         this.userInterface = userInterface;
-        this.persistence = persistence;
+        this.fileLocationConfiguration = fileLocationConfiguration;
         this.cardLayout = cardLayout;
         this.cardDeck = cardDeck;
         this.attackHandler = attackHandler;
@@ -108,7 +107,7 @@ public class WebSocketEditorPanel extends JPanel
             {
                 rSyntaxTextArea.setText(null);
             }
-            else if (path.toString().startsWith(WebSocketFuzzer.DEFAULT_SCRIPT_DIRECTORY))
+            else if (path.toString().startsWith(fileLocationConfiguration.defaultDirectory()))
             {
                 String data = null;
 
@@ -179,10 +178,10 @@ public class WebSocketEditorPanel extends JPanel
 
     private List<Path> getPathList()
     {
-        String websocketScriptsPath = persistence.preferences().getString("websocketsScriptsPath");
+        String websocketScriptsPath = fileLocationConfiguration.getWebSocketScriptPath();
         List<Path> pathList = new ArrayList<>();
 
-        if (WebSocketFuzzer.DEFAULT_SCRIPT_DIRECTORY.equals(websocketScriptsPath))
+        if (fileLocationConfiguration.isDefault())
         {
             URL url = WebSocketEditorPanel.class.getResource(websocketScriptsPath);
             if (url != null)
@@ -234,7 +233,7 @@ public class WebSocketEditorPanel extends JPanel
             if (option == JFileChooser.APPROVE_OPTION)
             {
                 File file = scriptsFileChooser.getSelectedFile();
-                persistence.preferences().setString("websocketsScriptsPath", file.getAbsolutePath());
+                fileLocationConfiguration.setWebSocketScriptPath(file.getAbsolutePath());
 
                 int originalSize = scriptComboBox.getItemCount();
 

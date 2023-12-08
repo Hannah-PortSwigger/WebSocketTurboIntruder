@@ -2,10 +2,10 @@ package ui;
 
 import attack.AttackHandler;
 import burp.WebSocketFuzzer;
-import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.WebSockets;
+import config.FileLocationConfiguration;
 import data.ConnectionMessage;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
@@ -25,7 +25,7 @@ public class WebSocketFrame extends JFrame
 {
     private final Logger logger;
     private final UserInterface userInterface;
-    private final Persistence persistence;
+    private final FileLocationConfiguration fileLocationConfiguration;
     private final WebSockets webSockets;
     private final WebSocketMessage webSocketMessage;
     private final AtomicBoolean isAttackRunning;
@@ -34,14 +34,14 @@ public class WebSocketFrame extends JFrame
     public WebSocketFrame(
             Logger logger,
             UserInterface userInterface,
-            Persistence persistence,
+            FileLocationConfiguration fileLocationConfiguration,
             WebSockets webSockets,
             WebSocketMessage webSocketMessage
     )
     {
         this.logger = logger;
         this.userInterface = userInterface;
-        this.persistence = persistence;
+        this.fileLocationConfiguration = fileLocationConfiguration;
         this.webSockets = webSockets;
         this.webSocketMessage = webSocketMessage;
 
@@ -77,7 +77,7 @@ public class WebSocketFrame extends JFrame
 
         attackHandler = new AttackHandler(logger, webSockets, sendMessageQueue, tableBlockingQueue, webSocketMessageTableModel, isAttackRunning);
 
-        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, persistence, cardLayout, cardDeck, attackHandler, webSocketMessage), "editorPanel");
+        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, fileLocationConfiguration, cardLayout, cardDeck, attackHandler, webSocketMessage), "editorPanel");
         cardDeck.add(new WebSocketAttackPanel(userInterface, cardLayout, cardDeck, attackHandler), "attackPanel");
 
         this.getContentPane().add(cardDeck);

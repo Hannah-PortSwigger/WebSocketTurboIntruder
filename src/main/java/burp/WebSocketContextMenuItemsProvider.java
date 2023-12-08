@@ -1,11 +1,11 @@
 package burp;
 
-import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import burp.api.montoya.ui.contextmenu.WebSocketContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.WebSockets;
+import config.FileLocationConfiguration;
 import logger.Logger;
 import ui.WebSocketFrame;
 
@@ -20,21 +20,21 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
 {
     private final Logger logger;
     private final UserInterface userInterface;
-    private final Persistence persistence;
+    private final FileLocationConfiguration fileLocationConfiguration;
     private final WebSockets webSockets;
     private final Consumer<JFrame> newFrameConsumer;
 
     public WebSocketContextMenuItemsProvider(
             Logger logger,
             UserInterface userInterface,
-            Persistence persistence,
+            FileLocationConfiguration fileLocationConfiguration,
             WebSockets webSockets,
             Consumer<JFrame> newFrameConsumer
     )
     {
         this.logger = logger;
         this.userInterface = userInterface;
-        this.persistence = persistence;
+        this.fileLocationConfiguration = fileLocationConfiguration;
         this.webSockets = webSockets;
         this.newFrameConsumer = newFrameConsumer;
     }
@@ -56,7 +56,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
 
         for(WebSocketMessage webSocketMessage : webSocketMessageList)
         {
-            newFrameConsumer.accept(new WebSocketFrame(logger, userInterface, persistence, webSockets, webSocketMessage));
+            newFrameConsumer.accept(new WebSocketFrame(logger, userInterface, fileLocationConfiguration, webSockets, webSocketMessage));
         }
     }
 }
