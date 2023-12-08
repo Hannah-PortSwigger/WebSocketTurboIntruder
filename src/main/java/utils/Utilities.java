@@ -6,18 +6,9 @@ import logger.Logger;
 import logger.LoggerLevel;
 
 import javax.swing.*;
-import java.util.List;
 
 public class Utilities
 {
-    public static void closeAllFrames(List<JFrame> frameList)
-    {
-        for (JFrame frame : frameList)
-        {
-            frame.dispose();
-        }
-    }
-
     public static void initializeDefaultDirectory(Logger logger, Persistence persistence)
     {
         if (persistence.preferences().getString("websocketsScriptsPath") == null)
@@ -27,7 +18,7 @@ public class Utilities
         }
     }
 
-    public static JMenu generateMenu(Logger logger, Persistence persistence, List<JFrame> frameList)
+    public static JMenu generateMenu(Logger logger, Persistence persistence, Runnable unloadAction)
     {
         JMenuItem resetDefaultScriptsMenuItem = new JMenuItem("Reset scripts directory to default.");
         resetDefaultScriptsMenuItem.addActionListener(l -> {
@@ -37,7 +28,7 @@ public class Utilities
 
         JMenuItem closeAllFramesMenuItem = new JMenuItem("Close all " + WebSocketFuzzer.EXTENSION_NAME + " windows.");
         closeAllFramesMenuItem.addActionListener(l -> {
-            closeAllFrames(frameList);
+            unloadAction.run();
             logger.logOutput(LoggerLevel.DEBUG, "All " + WebSocketFuzzer.EXTENSION_NAME + " windows closed.");
         });
 

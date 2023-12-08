@@ -12,6 +12,7 @@ import ui.WebSocketFrame;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvider
 {
@@ -19,21 +20,21 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
     private final UserInterface userInterface;
     private final Persistence persistence;
     private final WebSockets webSockets;
-    private final List<JFrame> frameList;
+    private final Consumer<JFrame> newFrameConsumer;
 
     public WebSocketContextMenuItemsProvider(
             Logger logger,
             UserInterface userInterface,
             Persistence persistence,
             WebSockets webSockets,
-            List<JFrame> frameList
+            Consumer<JFrame> newFrameConsumer
     )
     {
         this.logger = logger;
         this.userInterface = userInterface;
         this.persistence = persistence;
         this.webSockets = webSockets;
-        this.frameList = frameList;
+        this.newFrameConsumer = newFrameConsumer;
     }
 
     @Override
@@ -51,7 +52,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
 
         for(WebSocketMessage webSocketMessage : webSocketMessageList)
         {
-            frameList.add(new WebSocketFrame(logger, userInterface, persistence, webSockets, webSocketMessage));
+            newFrameConsumer.accept(new WebSocketFrame(logger, userInterface, persistence, webSockets, webSocketMessage));
         }
     }
 }

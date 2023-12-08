@@ -11,8 +11,6 @@ import logger.LoggerLevel;
 import utils.Utilities;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class WebSocketFuzzer implements BurpExtension
 {
@@ -31,13 +29,22 @@ public class WebSocketFuzzer implements BurpExtension
 
         Utilities.initializeDefaultDirectory(logger, persistence);
 
-        List<JFrame> frameList = new ArrayList<>();
+        WebSocketFuzzerFrames frames = new WebSocketFuzzerFrames();
 
-        JMenu menu = Utilities.generateMenu(logger, persistence, frameList);
+        JMenu menu = Utilities.generateMenu(logger, persistence, frames::close);
         userInterface.menuBar().registerMenu(menu);
 
-        userInterface.registerContextMenuItemsProvider(new WebSocketContextMenuItemsProvider(logger, userInterface, persistence, websockets, frameList));
-        extension.registerUnloadingHandler(new WebSocketExtensionUnloadingHandler(frameList));
+        userInterface.registerContextMenuItemsProvider(
+                new WebSocketContextMenuItemsProvider(
+                        logger,
+                        userInterface,
+                        persistence,
+                        websockets,
+                        frames::add
+                )
+        );
+
+        extension.registerUnloadingHandler(frames::close);
 
         extension.setName(EXTENSION_NAME);
         String extensionVersion = WebSocketFuzzer.class.getPackage().getImplementationVersion();
