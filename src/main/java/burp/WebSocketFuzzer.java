@@ -29,7 +29,7 @@ public class WebSocketFuzzer implements BurpExtension
 
         Utilities.initializeDefaultDirectory(logger, persistence);
 
-        WebSocketFuzzerFrames frames = new WebSocketFuzzerFrames();
+        WebSocketFuzzerFrames frames = new WebSocketFuzzerFrames(logger);
 
         JMenu menu = Utilities.generateMenu(logger, persistence, frames::close);
         userInterface.menuBar().registerMenu(menu);

@@ -27,10 +27,7 @@ public class Utilities
         });
 
         JMenuItem closeAllFramesMenuItem = new JMenuItem("Close all " + WebSocketFuzzer.EXTENSION_NAME + " windows.");
-        closeAllFramesMenuItem.addActionListener(l -> {
-            unloadAction.run();
-            logger.logOutput(LoggerLevel.DEBUG, "All " + WebSocketFuzzer.EXTENSION_NAME + " windows closed.");
-        });
+        closeAllFramesMenuItem.addActionListener(l -> unloadAction.run());
 
         JCheckBoxMenuItem loggingLevelDebug = new JCheckBoxMenuItem("Debug mode", logger.isDebugLogLevel());
         loggingLevelDebug.addActionListener(l -> logger.setDebugLogLevel(loggingLevelDebug.getState()));
