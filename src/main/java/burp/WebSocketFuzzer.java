@@ -8,9 +8,9 @@ import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.websocket.WebSockets;
 import logger.Logger;
 import logger.LoggerLevel;
-import utils.Utilities;
 
-import javax.swing.*;
+import static utils.Utilities.generateMenu;
+import static utils.Utilities.initializeDefaultDirectory;
 
 public class WebSocketFuzzer implements BurpExtension
 {
@@ -26,13 +26,11 @@ public class WebSocketFuzzer implements BurpExtension
         WebSockets websockets = api.websockets();
 
         Logger logger = new Logger(api.logging());
-
-        Utilities.initializeDefaultDirectory(logger, persistence);
-
         WebSocketFuzzerFrames frames = new WebSocketFuzzerFrames(logger);
 
-        JMenu menu = Utilities.generateMenu(logger, persistence, frames::close);
-        userInterface.menuBar().registerMenu(menu);
+        initializeDefaultDirectory(logger, persistence);
+
+        userInterface.menuBar().registerMenu(generateMenu(logger, persistence, frames::close));
 
         userInterface.registerContextMenuItemsProvider(
                 new WebSocketContextMenuItemsProvider(
@@ -47,6 +45,7 @@ public class WebSocketFuzzer implements BurpExtension
         extension.registerUnloadingHandler(frames::close);
 
         extension.setName(EXTENSION_NAME);
+
         String extensionVersion = WebSocketFuzzer.class.getPackage().getImplementationVersion();
         logger.logOutput(LoggerLevel.DEFAULT, EXTENSION_NAME + " v" + extensionVersion);
     }

@@ -14,6 +14,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static burp.WebSocketFuzzer.EXTENSION_NAME;
+
 public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvider
 {
     private final Logger logger;
@@ -40,7 +42,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
     @Override
     public List<Component> provideMenuItems(WebSocketContextMenuEvent event)
     {
-        JMenuItem sendToContextMenuItem = new JMenuItem("Send to " + WebSocketFuzzer.EXTENSION_NAME);
+        JMenuItem sendToContextMenuItem = new JMenuItem("Send to " + EXTENSION_NAME);
         sendToContextMenuItem.addActionListener(l -> performAction(event));
 
         return List.of(sendToContextMenuItem);
@@ -48,7 +50,9 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
 
     private void performAction(WebSocketContextMenuEvent event)
     {
-        List<WebSocketMessage> webSocketMessageList = event.messageEditorWebSocket().isPresent() ? List.of(event.messageEditorWebSocket().get().webSocketMessage()) : event.selectedWebSocketMessages();
+        List<WebSocketMessage> webSocketMessageList = event.messageEditorWebSocket().isPresent()
+                ? List.of(event.messageEditorWebSocket().get().webSocketMessage())
+                : event.selectedWebSocketMessages();
 
         for(WebSocketMessage webSocketMessage : webSocketMessageList)
         {
