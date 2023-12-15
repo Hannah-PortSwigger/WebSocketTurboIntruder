@@ -21,14 +21,20 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static javax.swing.SwingUtilities.invokeLater;
+
 public class WebSocketFrame extends JFrame
 {
+    private static final String ATTACK_PANEL_NAME = "attackPanel";
+    private static final String EDITOR_PANEL_NAME = "editorPanel";
+
     private final Logger logger;
     private final UserInterface userInterface;
     private final FileLocationConfiguration fileLocationConfiguration;
     private final WebSockets webSockets;
     private final WebSocketMessage webSocketMessage;
     private final AtomicBoolean isAttackRunning;
+
     private AttackHandler attackHandler;
 
     public WebSocketFrame(
@@ -77,8 +83,30 @@ public class WebSocketFrame extends JFrame
 
         attackHandler = new AttackHandler(logger, webSockets, sendMessageQueue, tableBlockingQueue, webSocketMessageTableModel, isAttackRunning);
 
-        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, fileLocationConfiguration, cardLayout, cardDeck, attackHandler, webSocketMessage), "editorPanel");
-        cardDeck.add(new WebSocketAttackPanel(userInterface, cardLayout, cardDeck, attackHandler), "attackPanel");
+        PanelSwitcher panelSwitcher = new PanelSwitcher()
+        {
+            @Override
+            public void showAttackPanel()
+            {
+                showPanel(ATTACK_PANEL_NAME);
+            }
+
+            @Override
+            public void showEditorPanel()
+            {
+                showPanel(EDITOR_PANEL_NAME);
+            }
+
+            private void showPanel(String panelName)
+            {
+                invokeLater(() ->
+                        cardLayout.show(cardDeck, panelName))
+                ;
+            }
+        };
+
+        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, fileLocationConfiguration, attackHandler, webSocketMessage, panelSwitcher), EDITOR_PANEL_NAME);
+        cardDeck.add(new WebSocketAttackPanel(userInterface, attackHandler, panelSwitcher), ATTACK_PANEL_NAME);
 
         this.getContentPane().add(cardDeck);
         this.pack();

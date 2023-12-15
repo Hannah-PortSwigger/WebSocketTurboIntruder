@@ -12,6 +12,7 @@ import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import ui.PanelSwitcher;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,10 +34,9 @@ public class WebSocketEditorPanel extends JPanel
     private final Logger logger;
     private final UserInterface userInterface;
     private final FileLocationConfiguration fileLocationConfiguration;
-    private final CardLayout cardLayout;
-    private final JPanel cardDeck;
     private final AttackHandler attackHandler;
     private final WebSocketMessage originalWebSocketMessage;
+    private final PanelSwitcher panelSwitcher;
     private JComboBox<Path> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
     private HttpRequestEditor upgradeHttpMessageEditor;
@@ -46,18 +46,17 @@ public class WebSocketEditorPanel extends JPanel
             Logger logger,
             UserInterface userInterface,
             FileLocationConfiguration fileLocationConfiguration,
-            CardLayout cardLayout,
-            JPanel cardDeck,
             AttackHandler attackHandler,
-            WebSocketMessage originalWebSocketMessage)
+            WebSocketMessage originalWebSocketMessage,
+            PanelSwitcher panelSwitcher
+    )
     {
         this.logger = logger;
         this.userInterface = userInterface;
         this.fileLocationConfiguration = fileLocationConfiguration;
-        this.cardLayout = cardLayout;
-        this.cardDeck = cardDeck;
         this.attackHandler = attackHandler;
         this.originalWebSocketMessage = originalWebSocketMessage;
+        this.panelSwitcher = panelSwitcher;
 
         this.setLayout(new BorderLayout());
 
@@ -313,7 +312,7 @@ public class WebSocketEditorPanel extends JPanel
 
             attackHandler.startConsumers((int) numberOfThreadsSpinner.getValue());
 
-            SwingUtilities.invokeLater(() -> cardLayout.show(cardDeck, "attackPanel"));
+            panelSwitcher.showAttackPanel();
         });
 
         return attackButton;
