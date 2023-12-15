@@ -9,6 +9,7 @@ import burp.api.montoya.websocket.WebSockets;
 import config.FileLocationConfiguration;
 import logger.Logger;
 import logger.LoggerLevel;
+import ui.WebSocketFrameFactory;
 
 import static utils.Utilities.generateMenu;
 
@@ -28,16 +29,14 @@ public class WebSocketFuzzer implements BurpExtension
         WebSocketFuzzerFrames frames = new WebSocketFuzzerFrames(logger);
 
         FileLocationConfiguration fileLocationConfiguration = new FileLocationConfiguration(logger, preferences);
+        WebSocketFrameFactory webSocketFrameFactory = new WebSocketFrameFactory(logger, userInterface, fileLocationConfiguration, websockets);
 
         userInterface.menuBar().registerMenu(generateMenu(logger, fileLocationConfiguration, frames::close));
 
         userInterface.registerContextMenuItemsProvider(
                 new WebSocketContextMenuItemsProvider(
-                        logger,
-                        userInterface,
-                        fileLocationConfiguration,
-                        websockets,
-                        frames::add
+                        frames::add,
+                        webSocketFrameFactory
                 )
         );
 

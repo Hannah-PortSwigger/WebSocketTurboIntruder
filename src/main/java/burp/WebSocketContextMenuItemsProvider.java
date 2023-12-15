@@ -1,13 +1,9 @@
 package burp;
 
-import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import burp.api.montoya.ui.contextmenu.WebSocketContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
-import burp.api.montoya.websocket.WebSockets;
-import config.FileLocationConfiguration;
-import logger.Logger;
-import ui.WebSocketFrame;
+import ui.WebSocketFrameFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,25 +14,16 @@ import static burp.WebSocketFuzzer.EXTENSION_NAME;
 
 public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvider
 {
-    private final Logger logger;
-    private final UserInterface userInterface;
-    private final FileLocationConfiguration fileLocationConfiguration;
-    private final WebSockets webSockets;
     private final Consumer<JFrame> newFrameConsumer;
+    private final WebSocketFrameFactory webSocketFrameFactory;
 
     public WebSocketContextMenuItemsProvider(
-            Logger logger,
-            UserInterface userInterface,
-            FileLocationConfiguration fileLocationConfiguration,
-            WebSockets webSockets,
-            Consumer<JFrame> newFrameConsumer
+            Consumer<JFrame> newFrameConsumer,
+            WebSocketFrameFactory webSocketFrameFactory
     )
     {
-        this.logger = logger;
-        this.userInterface = userInterface;
-        this.fileLocationConfiguration = fileLocationConfiguration;
-        this.webSockets = webSockets;
         this.newFrameConsumer = newFrameConsumer;
+        this.webSocketFrameFactory = webSocketFrameFactory;
     }
 
     @Override
@@ -54,9 +41,8 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
                 ? List.of(event.messageEditorWebSocket().get().webSocketMessage())
                 : event.selectedWebSocketMessages();
 
-        for(WebSocketMessage webSocketMessage : webSocketMessageList)
-        {
-            newFrameConsumer.accept(new WebSocketFrame(logger, userInterface, fileLocationConfiguration, webSockets, webSocketMessage));
-        }
+        webSocketMessageList.stream()
+                .map(webSocketFrameFactory::from)
+                .forEach(newFrameConsumer);
     }
 }
