@@ -20,6 +20,7 @@ import java.awt.event.WindowEvent;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static javax.swing.SwingUtilities.invokeLater;
 
@@ -81,7 +82,16 @@ public class WebSocketFrame extends JFrame
 
         WebSocketMessageTableModel webSocketMessageTableModel = new WebSocketMessageTableModel();
 
-        attackHandler = new AttackHandler(logger, webSockets, sendMessageQueue, tableBlockingQueue, webSocketMessageTableModel, isAttackRunning);
+        Consumer<ConnectionMessage> messageConsumer = connectionMessage -> invokeLater(() -> webSocketMessageTableModel.add(connectionMessage));
+
+        attackHandler = new AttackHandler(
+                logger,
+                webSockets,
+                sendMessageQueue,
+                tableBlockingQueue,
+                isAttackRunning,
+                messageConsumer
+        );
 
         PanelSwitcher panelSwitcher = new PanelSwitcher()
         {
@@ -104,7 +114,7 @@ public class WebSocketFrame extends JFrame
         };
 
         cardDeck.add(new WebSocketEditorPanel(logger, userInterface, fileLocationConfiguration, attackHandler, webSocketMessage, panelSwitcher), EDITOR_PANEL_NAME);
-        cardDeck.add(new WebSocketAttackPanel(userInterface, attackHandler, panelSwitcher), ATTACK_PANEL_NAME);
+        cardDeck.add(new WebSocketAttackPanel(userInterface, attackHandler, panelSwitcher, webSocketMessageTableModel), ATTACK_PANEL_NAME);
 
         this.getContentPane().add(cardDeck);
         this.pack();

@@ -13,7 +13,6 @@ import org.python.util.PythonInterpreter;
 import queue.SendMessageQueueConsumer;
 import queue.TableBlockingQueueConsumer;
 import queue.TableBlockingQueueProducer;
-import ui.attack.table.WebSocketMessageTableModel;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
@@ -22,14 +21,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import static java.awt.EventQueue.invokeLater;
-
 public class AttackHandler
 {
     private final Logger logger;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
-    private final WebSocketMessageTableModel webSocketMessageTableModel;
     private final AtomicBoolean isAttackRunning;
     private final PythonInterpreter interpreter;
     private final Consumer<ConnectionMessage> connectionMessageConsumer;
@@ -41,16 +37,15 @@ public class AttackHandler
             WebSockets webSockets,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             BlockingQueue<ConnectionMessage> tableBlockingQueue,
-            WebSocketMessageTableModel webSocketMessageTableModel,
-            AtomicBoolean isAttackRunning
+            AtomicBoolean isAttackRunning,
+            Consumer<ConnectionMessage> messageConsumer
     )
     {
         this.logger = logger;
         this.sendMessageQueue = sendMessageQueue;
         this.tableBlockingQueue = tableBlockingQueue;
-        this.webSocketMessageTableModel = webSocketMessageTableModel;
         this.isAttackRunning = isAttackRunning;
-        this.connectionMessageConsumer = connectionMessage -> invokeLater(() -> webSocketMessageTableModel.add(connectionMessage));
+        this.connectionMessageConsumer = messageConsumer;
 
         interpreter = new PythonInterpreter();
 
@@ -79,11 +74,6 @@ public class AttackHandler
                 : "handle_incoming_message";
 
         interpreter.exec(String.format("%s(%s)", callbackMethod, messageParameterName));
-    }
-
-    public WebSocketMessageTableModel getWebSocketMessageTableModel()
-    {
-        return webSocketMessageTableModel;
     }
 
     public AtomicBoolean getIsAttackRunning()

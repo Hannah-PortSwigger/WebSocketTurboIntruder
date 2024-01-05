@@ -7,6 +7,7 @@ import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import ui.PanelSwitcher;
 import ui.attack.table.WebSocketMessageTable;
+import ui.attack.table.WebSocketMessageTableModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,11 +19,14 @@ public class WebSocketAttackPanel extends JPanel
     private final AttackHandler attackHandler;
     private final AtomicBoolean isAttackRunning;
     private final PanelSwitcher panelSwitcher;
+    private final WebSocketMessageTableModel tableModel;
 
     public WebSocketAttackPanel(
             UserInterface userInterface,
             AttackHandler attackHandler,
-            PanelSwitcher panelSwitcher)
+            PanelSwitcher panelSwitcher,
+            WebSocketMessageTableModel tableModel
+    )
     {
         super(new BorderLayout());
 
@@ -31,6 +35,7 @@ public class WebSocketAttackPanel extends JPanel
 
         isAttackRunning = attackHandler.getIsAttackRunning();
         this.panelSwitcher = panelSwitcher;
+        this.tableModel = tableModel;
 
         initComponents();
     }
@@ -53,7 +58,7 @@ public class WebSocketAttackPanel extends JPanel
 
     private Component getWebSocketMessageTable(WebSocketMessageEditor webSocketMessageEditor, HttpRequestEditor upgradeRequestEditor)
     {
-        return new WebSocketMessageTable(attackHandler.getWebSocketMessageTableModel(), webSocketMessageEditor, upgradeRequestEditor);
+        return new WebSocketMessageTable(tableModel, webSocketMessageEditor, upgradeRequestEditor);
     }
 
     private WebSocketMessageEditor getWebSocketMessageEditor()
@@ -80,7 +85,7 @@ public class WebSocketAttackPanel extends JPanel
             }
             else
             {
-                attackHandler.getWebSocketMessageTableModel().clear();
+                tableModel.clear();
 
                 haltConfigureButton.setText("Halt");
 

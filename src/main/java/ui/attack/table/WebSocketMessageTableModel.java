@@ -1,7 +1,6 @@
 package ui.attack.table;
 
 import data.ConnectionMessage;
-import data.WebSocketConnectionMessage;
 
 import javax.swing.table.AbstractTableModel;
 import java.time.format.DateTimeFormatter;
@@ -11,6 +10,7 @@ import java.util.List;
 public class WebSocketMessageTableModel extends AbstractTableModel
 {
     private final List<ConnectionMessage> connectionMessageList;
+
     public WebSocketMessageTableModel()
     {
         this.connectionMessageList = new ArrayList<>();
