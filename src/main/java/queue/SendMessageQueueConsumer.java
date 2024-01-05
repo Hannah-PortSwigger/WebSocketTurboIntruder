@@ -18,16 +18,15 @@ public class SendMessageQueueConsumer implements Runnable
     public SendMessageQueueConsumer(
             Logger logger,
             AttackHandler attackHandler,
-            AtomicBoolean isAttackRunning
+            AtomicBoolean isAttackRunning,
+            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
     )
     {
         this.logger = logger;
         this.attackHandler = attackHandler;
         this.isAttackRunning = isAttackRunning;
-
-        sendMessageQueue = attackHandler.getSendMessageQueue();
+        this.sendMessageQueue = sendMessageQueue;
     }
-
 
     @Override
     public void run()

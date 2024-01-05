@@ -29,6 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
+import static javax.swing.JSplitPane.VERTICAL_SPLIT;
+
 public class WebSocketEditorPanel extends JPanel
 {
     private final Logger logger;
@@ -65,10 +68,10 @@ public class WebSocketEditorPanel extends JPanel
 
     private void initComponents()
     {
-        JSplitPane editableEditors = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
+        JSplitPane editableEditors = new JSplitPane(HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
         editableEditors.setResizeWeight(0.5);
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
+        JSplitPane splitPane = new JSplitPane(VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
         splitPane.setResizeWeight(0.3);
 
         this.add(splitPane, BorderLayout.CENTER);

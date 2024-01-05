@@ -76,16 +76,6 @@ public class AttackHandler
         interpreter.exec(String.format("%s(%s)", callbackMethod, messageParameterName));
     }
 
-    public BlockingQueue<WebSocketConnectionMessage> getSendMessageQueue()
-    {
-        return sendMessageQueue;
-    }
-
-    public BlockingQueue<ConnectionMessage> getTableBlockingQueue()
-    {
-        return tableBlockingQueue;
-    }
-
     public WebSocketMessageTableModel getWebSocketMessageTableModel()
     {
         return webSocketMessageTableModel;
@@ -98,9 +88,8 @@ public class AttackHandler
 
     public void startConsumers(int numberOfSendThreads)
     {
-
         sendMessageExecutorService = Executors.newFixedThreadPool(numberOfSendThreads);
-        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logger, this, isAttackRunning));
+        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logger, this, isAttackRunning, sendMessageQueue));
 
         logger.logOutput(LoggerLevel.DEBUG, "Number of threads attack started with: " + numberOfSendThreads);
 

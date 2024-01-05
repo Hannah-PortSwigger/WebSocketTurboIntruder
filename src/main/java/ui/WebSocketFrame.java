@@ -99,9 +99,7 @@ public class WebSocketFrame extends JFrame
 
             private void showPanel(String panelName)
             {
-                invokeLater(() ->
-                        cardLayout.show(cardDeck, panelName))
-                ;
+                invokeLater(() -> cardLayout.show(cardDeck, panelName));
             }
         };
 
