@@ -2,29 +2,28 @@ package queue;
 
 import data.ConnectionMessage;
 import logger.Logger;
-import ui.attack.table.WebSocketMessageTableModel;
 
-import java.awt.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class TableBlockingQueueConsumer implements Runnable
 {
     private final Logger logger;
     private final BlockingQueue<ConnectionMessage> queue;
-    private final WebSocketMessageTableModel tableModel;
+    private final Consumer<ConnectionMessage> messageConsumer;
     private final AtomicBoolean isAttackRunning;
 
     public TableBlockingQueueConsumer(
             Logger logger,
-            WebSocketMessageTableModel tableModel,
             BlockingQueue<ConnectionMessage> queue,
-            AtomicBoolean isAttackRunning
+            AtomicBoolean isAttackRunning,
+            Consumer<ConnectionMessage> messageConsumer
     )
     {
         this.logger = logger;
         this.queue = queue;
-        this.tableModel = tableModel;
+        this.messageConsumer = messageConsumer;
         this.isAttackRunning = isAttackRunning;
     }
 
@@ -35,9 +34,9 @@ public class TableBlockingQueueConsumer implements Runnable
         {
             try
             {
-                ConnectionMessage connectionMessage = queue.take();
-                EventQueue.invokeLater(() -> tableModel.add(connectionMessage));
-            } catch (InterruptedException e)
+                messageConsumer.accept(queue.take());
+            }
+            catch (InterruptedException e)
             {
                 logger.logError("Error taking from tableBlockingQueue.");
             }

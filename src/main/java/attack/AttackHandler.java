@@ -20,6 +20,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+import static java.awt.EventQueue.invokeLater;
 
 public class AttackHandler
 {
@@ -29,6 +32,7 @@ public class AttackHandler
     private final WebSocketMessageTableModel webSocketMessageTableModel;
     private final AtomicBoolean isAttackRunning;
     private final PythonInterpreter interpreter;
+    private final Consumer<ConnectionMessage> connectionMessageConsumer;
     private ExecutorService sendMessageExecutorService;
     private ExecutorService tableExecutorService;
 
@@ -46,6 +50,7 @@ public class AttackHandler
         this.tableBlockingQueue = tableBlockingQueue;
         this.webSocketMessageTableModel = webSocketMessageTableModel;
         this.isAttackRunning = isAttackRunning;
+        this.connectionMessageConsumer = connectionMessage -> invokeLater(() -> webSocketMessageTableModel.add(connectionMessage));
 
         interpreter = new PythonInterpreter();
 
@@ -94,7 +99,14 @@ public class AttackHandler
         logger.logOutput(LoggerLevel.DEBUG, "Number of threads attack started with: " + numberOfSendThreads);
 
         tableExecutorService = Executors.newSingleThreadExecutor();
-        tableExecutorService.execute(new TableBlockingQueueConsumer(logger, webSocketMessageTableModel, tableBlockingQueue, isAttackRunning));
+        tableExecutorService.execute(
+                new TableBlockingQueueConsumer(
+                        logger,
+                        tableBlockingQueue,
+                        isAttackRunning,
+                        connectionMessageConsumer
+                )
+        );
 
         logger.logOutput(LoggerLevel.DEBUG, "Table thread started.");
     }
