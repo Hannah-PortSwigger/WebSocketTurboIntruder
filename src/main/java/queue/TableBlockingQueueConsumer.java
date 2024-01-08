@@ -39,7 +39,10 @@ public class TableBlockingQueueConsumer implements Runnable
                 EventQueue.invokeLater(() -> tableModel.add(connectionMessage));
             } catch (InterruptedException e)
             {
-                logger.logError("Error taking from tableBlockingQueue.");
+                if (isAttackRunning.get())
+                {
+                    logger.logError("Error taking from tableBlockingQueue.");
+                }
             }
         }
     }
