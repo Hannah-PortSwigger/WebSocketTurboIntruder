@@ -15,6 +15,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import ui.PanelSwitcher;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
@@ -292,26 +294,26 @@ public class WebSocketEditorPanel extends JPanel
         return codeEditor;
     }
 
-    private JButton getAttackButton(RSyntaxTextArea rSyntaxTextArea)
+    private JButton getAttackButton(JTextComponent scriptTextComponent)
     {
         JButton attackButton = new JButton("Attack");
         attackButton.addActionListener(l -> {
             String payload = webSocketsMessageEditor.getContents().toString();
             HttpRequest upgradeRequest = upgradeHttpMessageEditor.getRequest();
 
-            String jythonCode = rSyntaxTextArea.getText();
+            String script = scriptTextComponent.getText();
 
-            new Thread(() -> {
+            newSingleThreadExecutor().submit(() ->
+            {
                 try
                 {
-                    attackHandler.executeJython(payload, upgradeRequest, jythonCode);
-                }
-                catch (Exception e)
+                    attackHandler.startAttack(payload, upgradeRequest, script);
+                } catch (Exception e)
                 {
                     JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
                     logger.logError("Jython code error. Please review.\r\n" + e);
                 }
-            }).start();
+            });
 
             attackHandler.startConsumers((int) numberOfThreadsSpinner.getValue());
 

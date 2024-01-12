@@ -42,7 +42,7 @@ public class SendMessageQueueConsumer implements Runnable
                     webSocketConnectionMessage.send();
                 }
 
-                attackHandler.executeCallback(webSocketConnectionMessage);
+                attackHandler.processMessage(webSocketConnectionMessage);
             } catch (InterruptedException e)
             {
                 if (isAttackRunning.get())
