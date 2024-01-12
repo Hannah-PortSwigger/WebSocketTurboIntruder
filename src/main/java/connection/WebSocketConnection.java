@@ -1,5 +1,6 @@
 package connection;
 
+import attack.AttackStatus;
 import burp.WebSocketExtensionWebSocketMessageHandler;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.websocket.Direction;
@@ -12,7 +13,6 @@ import logger.LoggerLevel;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketConnection implements Connection
 {
@@ -20,7 +20,7 @@ public class WebSocketConnection implements Connection
     private final WebSockets webSockets;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final HttpRequest upgradeRequest;
-    private final AtomicBoolean isAttackRunning;
+    private final AttackStatus attackStatus;
     private final ExtensionWebSocket extensionWebSocket;
 
     WebSocketConnection(
@@ -28,14 +28,14 @@ public class WebSocketConnection implements Connection
             WebSockets webSockets,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             HttpRequest upgradeRequest,
-            AtomicBoolean isAttackRunning
+            AttackStatus attackStatus
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
         this.sendMessageQueue = sendMessageQueue;
         this.upgradeRequest = upgradeRequest;
-        this.isAttackRunning = isAttackRunning;
+        this.attackStatus = attackStatus;
 
         extensionWebSocket = createExtensionWebSocket(upgradeRequest);
     }
@@ -43,8 +43,9 @@ public class WebSocketConnection implements Connection
     @Override
     public void queue(String payload)
     {
-        if (isAttackRunning.get())
-        {try
+        if (attackStatus.isRunning())
+        {
+            try
             {
                 sendMessageQueue.put(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), null, this));
             }
@@ -58,7 +59,7 @@ public class WebSocketConnection implements Connection
     @Override
     public void queue(String payload, String comment)
     {
-        if (isAttackRunning.get())
+        if (attackStatus.isRunning())
         {
             try
             {

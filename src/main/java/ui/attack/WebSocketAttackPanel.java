@@ -1,6 +1,7 @@
 package ui.attack;
 
 import attack.AttackHandler;
+import attack.AttackManager;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
@@ -11,19 +12,19 @@ import ui.attack.table.WebSocketMessageTableModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketAttackPanel extends JPanel
 {
     private final UserInterface userInterface;
     private final AttackHandler attackHandler;
-    private final AtomicBoolean isAttackRunning;
+    private final AttackManager attackManager;
     private final PanelSwitcher panelSwitcher;
     private final WebSocketMessageTableModel tableModel;
 
     public WebSocketAttackPanel(
             UserInterface userInterface,
             AttackHandler attackHandler,
+            AttackManager attackManager,
             PanelSwitcher panelSwitcher,
             WebSocketMessageTableModel tableModel
     )
@@ -32,8 +33,7 @@ public class WebSocketAttackPanel extends JPanel
 
         this.userInterface = userInterface;
         this.attackHandler = attackHandler;
-
-        isAttackRunning = attackHandler.getIsAttackRunning();
+        this.attackManager = attackManager;
         this.panelSwitcher = panelSwitcher;
         this.tableModel = tableModel;
 
@@ -79,9 +79,9 @@ public class WebSocketAttackPanel extends JPanel
     {
         JButton haltConfigureButton = new JButton("Halt");
         haltConfigureButton.addActionListener(l -> {
-            if (isAttackRunning.get())
+            if (attackManager.isRunning())
             {
-                isAttackRunning.set(false);
+                attackManager.stop();
 
                 attackHandler.shutdownConsumers();
 
@@ -93,7 +93,7 @@ public class WebSocketAttackPanel extends JPanel
 
                 haltConfigureButton.setText("Halt");
 
-                isAttackRunning.set(true);
+                attackManager.start(); // TODO - do we need this?
                 panelSwitcher.showEditorPanel();
             }
         });

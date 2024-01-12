@@ -13,7 +13,6 @@ import queue.TableBlockingQueueConsumer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class AttackHandler
@@ -21,7 +20,7 @@ public class AttackHandler
     private final Logger logger;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
     private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
-    private final AtomicBoolean isAttackRunning;
+    private final AttackStatus attackStatus;
     private final Consumer<ConnectionMessage> connectionMessageConsumer;
     private final AttackScriptExecutor scriptExecutor;
 
@@ -33,20 +32,20 @@ public class AttackHandler
             WebSockets webSockets,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             BlockingQueue<ConnectionMessage> tableBlockingQueue,
-            AtomicBoolean isAttackRunning,
+            AttackStatus attackStatus,
             Consumer<ConnectionMessage> messageConsumer
     )
     {
         this.logger = logger;
         this.sendMessageQueue = sendMessageQueue;
         this.tableBlockingQueue = tableBlockingQueue;
-        this.isAttackRunning = isAttackRunning;
+        this.attackStatus = attackStatus;
         this.connectionMessageConsumer = messageConsumer;
 
         this.scriptExecutor = new AttackScriptExecutor(
                 logger,
                 tableBlockingQueue,
-                new ConnectionFactory(logger, webSockets, sendMessageQueue, isAttackRunning)
+                new ConnectionFactory(logger, webSockets, sendMessageQueue, attackStatus)
         );
     }
 
@@ -60,15 +59,10 @@ public class AttackHandler
         scriptExecutor.processMessage(webSocketConnectionMessage);
     }
 
-    public AtomicBoolean getIsAttackRunning()
-    {
-        return isAttackRunning;
-    }
-
     public void startConsumers(int numberOfSendThreads)
     {
         sendMessageExecutorService = Executors.newFixedThreadPool(numberOfSendThreads);
-        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logger, this, isAttackRunning, sendMessageQueue));
+        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logger, this, attackStatus, sendMessageQueue));
 
         logger.logOutput(LoggerLevel.DEBUG, "Number of threads attack started with: " + numberOfSendThreads);
 
@@ -77,7 +71,7 @@ public class AttackHandler
                 new TableBlockingQueueConsumer(
                         logger,
                         tableBlockingQueue,
-                        isAttackRunning,
+                        attackStatus,
                         connectionMessageConsumer
                 )
         );
