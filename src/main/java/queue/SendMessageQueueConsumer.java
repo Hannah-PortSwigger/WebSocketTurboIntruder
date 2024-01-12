@@ -45,7 +45,10 @@ public class SendMessageQueueConsumer implements Runnable
                 attackHandler.executeCallback(webSocketConnectionMessage);
             } catch (InterruptedException e)
             {
-                logger.logError("Failed to take message from sendMessageQueue");
+                if (isAttackRunning.get())
+                {
+                    logger.logError("Failed to take message from sendMessageQueue");
+                }
             }
         }
     }

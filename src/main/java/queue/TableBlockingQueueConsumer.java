@@ -38,7 +38,10 @@ public class TableBlockingQueueConsumer implements Runnable
             }
             catch (InterruptedException e)
             {
-                logger.logError("Error taking from tableBlockingQueue.");
+                if (isAttackRunning.get())
+                {
+                    logger.logError("Error taking from tableBlockingQueue.");
+                }
             }
         }
     }

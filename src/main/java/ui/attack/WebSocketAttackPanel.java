@@ -53,7 +53,11 @@ public class WebSocketAttackPanel extends JPanel
 
         JSplitPane webSocketInformationDisplay = new JSplitPane(JSplitPane.VERTICAL_SPLIT, webSocketMessageEditor.uiComponent(), upgradeRequestEditor.uiComponent());
         webSocketInformationDisplay.setResizeWeight(0.5);
-        return new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageTable(webSocketMessageEditor, upgradeRequestEditor), webSocketInformationDisplay);
+
+        JSplitPane attackPanelSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageTable(webSocketMessageEditor, upgradeRequestEditor), webSocketInformationDisplay);
+        attackPanelSplitPane.setResizeWeight(0.5);
+
+        return attackPanelSplitPane;
     }
 
     private Component getWebSocketMessageTable(WebSocketMessageEditor webSocketMessageEditor, HttpRequestEditor upgradeRequestEditor)
