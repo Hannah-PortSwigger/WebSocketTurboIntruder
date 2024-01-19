@@ -1,6 +1,5 @@
 package ui;
 
-import attack.AttackHandler;
 import attack.AttackManager;
 import attack.AttackScriptExecutor;
 import burp.WebSocketFuzzer;
@@ -36,9 +35,8 @@ public class WebSocketFrame extends JFrame
     private final FileLocationConfiguration fileLocationConfiguration;
     private final WebSockets webSockets;
     private final WebSocketMessage webSocketMessage;
-    private final AttackManager attackManager;
 
-    private AttackHandler attackHandler;
+    private AttackManager attackManager;
 
     public WebSocketFrame(
             Logger logger,
@@ -54,8 +52,6 @@ public class WebSocketFrame extends JFrame
         this.webSockets = webSockets;
         this.webSocketMessage = webSocketMessage;
 
-        attackManager = new AttackManager();
-
         initComponents();
 
         this.addWindowListener(new WindowAdapter()
@@ -63,8 +59,7 @@ public class WebSocketFrame extends JFrame
             @Override
             public void windowClosed(WindowEvent e)
             {
-                attackManager.stop();
-                attackHandler.shutdownConsumers();
+                attackManager.stopAttack();
             }
         });
     }
@@ -94,11 +89,10 @@ public class WebSocketFrame extends JFrame
 
         Consumer<WebSocketConnectionMessage> messageProcessor = scriptExecutor::processMessage;
 
-        attackHandler = new AttackHandler(
+        attackManager = new AttackManager(
                 logger,
                 sendMessageQueue,
                 tableBlockingQueue,
-                attackManager,
                 messageConsumer,
                 messageProcessor
         );
@@ -123,8 +117,28 @@ public class WebSocketFrame extends JFrame
             }
         };
 
-        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, fileLocationConfiguration, attackHandler, scriptExecutor, webSocketMessage, panelSwitcher), EDITOR_PANEL_NAME);
-        cardDeck.add(new WebSocketAttackPanel(userInterface, attackHandler, attackManager, panelSwitcher, webSocketMessageTableModel), ATTACK_PANEL_NAME);
+        cardDeck.add(
+                new WebSocketEditorPanel(
+                        logger,
+                        userInterface,
+                        fileLocationConfiguration,
+                        attackManager,
+                        scriptExecutor,
+                        webSocketMessage,
+                        panelSwitcher
+                ),
+                EDITOR_PANEL_NAME
+        );
+
+        cardDeck.add(
+                new WebSocketAttackPanel(
+                        userInterface,
+                        attackManager,
+                        panelSwitcher,
+                        webSocketMessageTableModel
+                ),
+                ATTACK_PANEL_NAME
+        );
 
         this.getContentPane().add(cardDeck);
         this.pack();

@@ -1,7 +1,7 @@
 package ui.editor;
 
-import attack.AttackHandler;
 import attack.AttackScriptExecutor;
+import attack.AttackStarter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
@@ -40,7 +40,7 @@ public class WebSocketEditorPanel extends JPanel
     private final Logger logger;
     private final UserInterface userInterface;
     private final FileLocationConfiguration fileLocationConfiguration;
-    private final AttackHandler attackHandler;
+    private final AttackStarter attackStarter;
     private final AttackScriptExecutor scriptExecutor;
     private final WebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
@@ -53,7 +53,7 @@ public class WebSocketEditorPanel extends JPanel
             Logger logger,
             UserInterface userInterface,
             FileLocationConfiguration fileLocationConfiguration,
-            AttackHandler attackHandler,
+            AttackStarter attackStarter,
             AttackScriptExecutor scriptExecutor,
             WebSocketMessage originalWebSocketMessage,
             PanelSwitcher panelSwitcher
@@ -62,7 +62,7 @@ public class WebSocketEditorPanel extends JPanel
         this.logger = logger;
         this.userInterface = userInterface;
         this.fileLocationConfiguration = fileLocationConfiguration;
-        this.attackHandler = attackHandler;
+        this.attackStarter = attackStarter;
         this.scriptExecutor = scriptExecutor;
         this.originalWebSocketMessage = originalWebSocketMessage;
         this.panelSwitcher = panelSwitcher;
@@ -319,7 +319,7 @@ public class WebSocketEditorPanel extends JPanel
                 }
             });
 
-            attackHandler.startConsumers((int) numberOfThreadsSpinner.getValue());
+            attackStarter.startAttack((int) numberOfThreadsSpinner.getValue());
 
             panelSwitcher.showAttackPanel();
         });
