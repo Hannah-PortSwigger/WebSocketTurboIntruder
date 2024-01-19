@@ -1,12 +1,8 @@
 package attack;
 
-import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.websocket.WebSockets;
-import connection.ConnectionFactory;
 import data.ConnectionMessage;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
-import logger.LoggerLevel;
 import queue.SendMessageQueueConsumer;
 import queue.TableBlockingQueueConsumer;
 
@@ -15,6 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+import static logger.LoggerLevel.DEBUG;
+
 public class AttackHandler
 {
     private final Logger logger;
@@ -22,49 +20,33 @@ public class AttackHandler
     private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
     private final AttackStatus attackStatus;
     private final Consumer<ConnectionMessage> connectionMessageConsumer;
-    private final AttackScriptExecutor scriptExecutor;
+    private final Consumer<WebSocketConnectionMessage> messageProcessor;
 
     private ExecutorService sendMessageExecutorService;
     private ExecutorService tableExecutorService;
 
     public AttackHandler(
             Logger logger,
-            WebSockets webSockets,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
             BlockingQueue<ConnectionMessage> tableBlockingQueue,
             AttackStatus attackStatus,
-            Consumer<ConnectionMessage> messageConsumer
-    )
+            Consumer<ConnectionMessage> messageConsumer,
+            Consumer<WebSocketConnectionMessage> messageProcessor)
     {
         this.logger = logger;
         this.sendMessageQueue = sendMessageQueue;
         this.tableBlockingQueue = tableBlockingQueue;
         this.attackStatus = attackStatus;
         this.connectionMessageConsumer = messageConsumer;
-
-        this.scriptExecutor = new AttackScriptExecutor(
-                logger,
-                tableBlockingQueue,
-                new ConnectionFactory(logger, webSockets, sendMessageQueue, attackStatus)
-        );
-    }
-
-    public void startAttack(String payload, HttpRequest upgradeRequest, String script)
-    {
-        scriptExecutor.startAttack(payload, upgradeRequest, script);
-    }
-
-    public void processMessage(WebSocketConnectionMessage webSocketConnectionMessage)
-    {
-        scriptExecutor.processMessage(webSocketConnectionMessage);
+        this.messageProcessor = messageProcessor;
     }
 
     public void startConsumers(int numberOfSendThreads)
     {
         sendMessageExecutorService = Executors.newFixedThreadPool(numberOfSendThreads);
-        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logger, this, attackStatus, sendMessageQueue));
+        sendMessageExecutorService.execute(new SendMessageQueueConsumer(logger, messageProcessor, attackStatus, sendMessageQueue));
 
-        logger.logOutput(LoggerLevel.DEBUG, "Number of threads attack started with: " + numberOfSendThreads);
+        logger.logOutput(DEBUG, "Number of threads attack started with: " + numberOfSendThreads);
 
         tableExecutorService = Executors.newSingleThreadExecutor();
         tableExecutorService.execute(
@@ -76,16 +58,16 @@ public class AttackHandler
                 )
         );
 
-        logger.logOutput(LoggerLevel.DEBUG, "Table thread started.");
+        logger.logOutput(DEBUG, "Table thread started.");
     }
 
     public void shutdownConsumers()
     {
         sendMessageExecutorService.shutdownNow();
-        logger.logOutput(LoggerLevel.DEBUG, "sendMessageExecutorService shutdown? " + sendMessageExecutorService.isShutdown());
+        logger.logOutput(DEBUG, "sendMessageExecutorService shutdown? " + sendMessageExecutorService.isShutdown());
 
         tableExecutorService.shutdownNow();
-        logger.logOutput(LoggerLevel.DEBUG, "tableExecutorService shutdown? " + tableExecutorService.isShutdown());
+        logger.logOutput(DEBUG, "tableExecutorService shutdown? " + tableExecutorService.isShutdown());
 
         sendMessageQueue.clear();
         tableBlockingQueue.clear();

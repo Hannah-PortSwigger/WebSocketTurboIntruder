@@ -1,29 +1,29 @@
 package queue;
 
-import attack.AttackHandler;
 import attack.AttackStatus;
 import burp.api.montoya.websocket.Direction;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Consumer;
 
 public class SendMessageQueueConsumer implements Runnable
 {
     private final Logger logger;
-    private final AttackHandler attackHandler;
+    private final Consumer<WebSocketConnectionMessage> messageProcessor;
     private final AttackStatus attackStatus;
     private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
 
     public SendMessageQueueConsumer(
             Logger logger,
-            AttackHandler attackHandler,
+            Consumer<WebSocketConnectionMessage> messageProcessor,
             AttackStatus attackStatus,
             BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
     )
     {
         this.logger = logger;
-        this.attackHandler = attackHandler;
+        this.messageProcessor = messageProcessor;
         this.attackStatus = attackStatus;
         this.sendMessageQueue = sendMessageQueue;
     }
@@ -42,7 +42,7 @@ public class SendMessageQueueConsumer implements Runnable
                     webSocketConnectionMessage.send();
                 }
 
-                attackHandler.processMessage(webSocketConnectionMessage);
+                messageProcessor.accept(webSocketConnectionMessage);
             } catch (InterruptedException e)
             {
                 if (attackStatus.isRunning())

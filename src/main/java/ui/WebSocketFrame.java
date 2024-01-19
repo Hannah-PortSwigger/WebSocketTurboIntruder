@@ -2,11 +2,13 @@ package ui;
 
 import attack.AttackHandler;
 import attack.AttackManager;
+import attack.AttackScriptExecutor;
 import burp.WebSocketFuzzer;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.WebSockets;
 import config.FileLocationConfiguration;
+import connection.ConnectionFactory;
 import data.ConnectionMessage;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
@@ -84,13 +86,21 @@ public class WebSocketFrame extends JFrame
 
         Consumer<ConnectionMessage> messageConsumer = connectionMessage -> invokeLater(() -> webSocketMessageTableModel.add(connectionMessage));
 
+        AttackScriptExecutor scriptExecutor = new AttackScriptExecutor(
+                logger,
+                tableBlockingQueue,
+                new ConnectionFactory(logger, webSockets, sendMessageQueue, attackManager)
+        );
+
+        Consumer<WebSocketConnectionMessage> messageProcessor = scriptExecutor::processMessage;
+
         attackHandler = new AttackHandler(
                 logger,
-                webSockets,
                 sendMessageQueue,
                 tableBlockingQueue,
                 attackManager,
-                messageConsumer
+                messageConsumer,
+                messageProcessor
         );
 
         PanelSwitcher panelSwitcher = new PanelSwitcher()
@@ -113,7 +123,7 @@ public class WebSocketFrame extends JFrame
             }
         };
 
-        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, fileLocationConfiguration, attackHandler, webSocketMessage, panelSwitcher), EDITOR_PANEL_NAME);
+        cardDeck.add(new WebSocketEditorPanel(logger, userInterface, fileLocationConfiguration, attackHandler, scriptExecutor, webSocketMessage, panelSwitcher), EDITOR_PANEL_NAME);
         cardDeck.add(new WebSocketAttackPanel(userInterface, attackHandler, attackManager, panelSwitcher, webSocketMessageTableModel), ATTACK_PANEL_NAME);
 
         this.getContentPane().add(cardDeck);
