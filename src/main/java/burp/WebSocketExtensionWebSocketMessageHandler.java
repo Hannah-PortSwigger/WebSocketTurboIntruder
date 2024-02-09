@@ -9,8 +9,6 @@ import logger.Logger;
 
 import java.util.function.Consumer;
 
-import static java.time.LocalDateTime.now;
-
 public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSocketMessageHandler
 {
     private final Logger logger;
@@ -35,8 +33,6 @@ public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSo
                 new WebSocketConnectionMessage(
                         textMessage.payload(),
                         textMessage.direction(),
-                        now(), // TODO - move to ctor?
-                        null, // TODO - overload ?
                         connection
                 )
         );

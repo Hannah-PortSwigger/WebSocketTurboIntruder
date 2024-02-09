@@ -5,6 +5,8 @@ import connection.WebSocketConnection;
 
 import java.time.LocalDateTime;
 
+import static java.time.LocalDateTime.now;
+
 public class WebSocketConnectionMessage implements ConnectionMessage
 {
     private final String payload;
@@ -14,10 +16,14 @@ public class WebSocketConnectionMessage implements ConnectionMessage
     private String comment;
     private final WebSocketConnection connection;
 
+    public WebSocketConnectionMessage(String payload, Direction direction, WebSocketConnection connection)
+    {
+        this(payload, direction, null, connection);
+    }
+
     public WebSocketConnectionMessage(
             String payload,
             Direction direction,
-            LocalDateTime dateTime,
             String comment,
             WebSocketConnection connection
     )
@@ -25,7 +31,7 @@ public class WebSocketConnectionMessage implements ConnectionMessage
         this.payload = payload;
         this.direction = direction;
         this.length = payload.length();
-        this.dateTime = dateTime;
+        this.dateTime = now();
         this.comment = comment;
         this.connection = connection;
     }

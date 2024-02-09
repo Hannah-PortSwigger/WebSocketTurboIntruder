@@ -12,8 +12,6 @@ import data.WebSocketConnectionMessage;
 import logger.Logger;
 import logger.LoggerLevel;
 
-import java.time.LocalDateTime;
-
 public class WebSocketConnection implements Connection
 {
     private final Logger logger;
@@ -45,7 +43,7 @@ public class WebSocketConnection implements Connection
     {
         if (attackStatus.isRunning()) // TODO
         {
-           pendingMessages.accept(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), null, this));
+           pendingMessages.accept(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, this));
         }
     }
 
@@ -54,7 +52,7 @@ public class WebSocketConnection implements Connection
     {
         if (attackStatus.isRunning())
         {
-            pendingMessages.accept(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), comment, this)); // TODO - now
+            pendingMessages.accept(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, comment, this));
         }
     }
 
