@@ -3,25 +3,25 @@ package attack;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.websocket.Direction;
 import connection.Connection;
-import connection.ConnectionFactory;
 import data.ConnectionMessage;
+import data.MessagesToDisplay;
 import data.WebSocketConnectionMessage;
 import interpreter.Interpreter;
 import logger.Logger;
-import queue.TableBlockingQueueProducer;
+import python.ConnectionFactory;
+import python.ResultsTable;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.BlockingQueue;
 
 public class AttackScriptExecutor
 {
     private final Interpreter interpreter;
 
-    public AttackScriptExecutor(Logger logger, BlockingQueue<ConnectionMessage> tableBlockingQueue, ConnectionFactory connectionFactory)
+    public AttackScriptExecutor(Logger logger, MessagesToDisplay messagesToDisplay, ConnectionFactory connectionFactory)
     {
         interpreter = new Interpreter(logger);
         interpreter.setVariable("websocket_connection", connectionFactory);
-        interpreter.setVariable("results_table", new TableBlockingQueueProducer(logger, tableBlockingQueue));
+        interpreter.setVariable("results_table", new ResultsTable(messagesToDisplay));
     }
 
     public void startAttack(String payload, HttpRequest upgradeRequest, String editorCodeString)

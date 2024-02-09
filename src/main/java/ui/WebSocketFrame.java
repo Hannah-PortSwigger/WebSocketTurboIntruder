@@ -7,10 +7,12 @@ import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.WebSockets;
 import config.FileLocationConfiguration;
-import connection.ConnectionFactory;
 import data.ConnectionMessage;
+import data.MessagesToDisplay;
+import data.PendingMessages;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
+import python.ConnectionFactory;
 import ui.attack.WebSocketAttackPanel;
 import ui.attack.table.WebSocketMessageTableModel;
 import ui.editor.WebSocketEditorPanel;
@@ -19,8 +21,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static javax.swing.SwingUtilities.invokeLater;
@@ -74,28 +75,37 @@ public class WebSocketFrame extends JFrame
         CardLayout cardLayout = new CardLayout();
         JPanel cardDeck = new JPanel(cardLayout);
 
-        BlockingQueue<WebSocketConnectionMessage> sendMessageQueue = new LinkedBlockingQueue<>();
-        BlockingQueue<ConnectionMessage> tableBlockingQueue = new LinkedBlockingQueue<>();
+        PendingMessages pendingMessages = new PendingMessages(logger, attackManager);
+        MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackManager);
 
         WebSocketMessageTableModel webSocketMessageTableModel = new WebSocketMessageTableModel();
 
         Consumer<ConnectionMessage> messageConsumer = connectionMessage -> invokeLater(() -> webSocketMessageTableModel.add(connectionMessage));
 
+        AtomicReference<AttackManager> attackManagerReference = new AtomicReference<>();
+
         AttackScriptExecutor scriptExecutor = new AttackScriptExecutor(
                 logger,
-                tableBlockingQueue,
-                new ConnectionFactory(logger, webSockets, sendMessageQueue, attackManager)
+                messagesToDisplay,
+                new ConnectionFactory(
+                        logger,
+                        webSockets,
+                        pendingMessages,
+                        () -> attackManagerReference.get().isRunning()
+                )
         );
 
         Consumer<WebSocketConnectionMessage> messageProcessor = scriptExecutor::processMessage;
 
         attackManager = new AttackManager(
                 logger,
-                sendMessageQueue,
-                tableBlockingQueue,
+                pendingMessages,
+                messagesToDisplay,
                 messageConsumer,
                 messageProcessor
         );
+
+        attackManagerReference.set(attackManager);
 
         PanelSwitcher panelSwitcher = new PanelSwitcher()
         {

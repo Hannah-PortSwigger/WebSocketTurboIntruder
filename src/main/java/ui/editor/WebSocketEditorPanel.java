@@ -307,19 +307,20 @@ public class WebSocketEditorPanel extends JPanel
 
             String script = scriptTextComponent.getText();
 
+            attackStarter.startAttack((int) numberOfThreadsSpinner.getValue());
+
             newSingleThreadExecutor().submit(() ->
             {
                 try
                 {
                     scriptExecutor.startAttack(payload, upgradeRequest, script);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
                     logger.logError("Jython code error. Please review.\r\n" + e);
                 }
             });
-
-            attackStarter.startAttack((int) numberOfThreadsSpinner.getValue());
 
             panelSwitcher.showAttackPanel();
         });

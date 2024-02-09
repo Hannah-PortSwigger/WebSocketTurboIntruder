@@ -1,12 +1,13 @@
 package attack;
 
 import data.ConnectionMessage;
+import data.MessagesToDisplay;
+import data.PendingMessages;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
 import queue.SendMessageQueueConsumer;
 import queue.TableBlockingQueueConsumer;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,8 +18,8 @@ import static logger.LoggerLevel.DEBUG;
 public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
 {
     private final Logger logger;
-    private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
-    private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
+    private final PendingMessages pendingMessages;
+    private final MessagesToDisplay messagesToDisplay;
     private final Consumer<ConnectionMessage> connectionMessageConsumer;
     private final Consumer<WebSocketConnectionMessage> messageProcessor;
     private final AtomicBoolean isRunning;
@@ -28,15 +29,15 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
 
     public AttackManager(
             Logger logger,
-            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
-            BlockingQueue<ConnectionMessage> tableBlockingQueue,
+            PendingMessages pendingMessages,
+            MessagesToDisplay messagesToDisplay,
             Consumer<ConnectionMessage> messageConsumer,
             Consumer<WebSocketConnectionMessage> messageProcessor)
     {
         this.logger = logger;
-        this.sendMessageQueue = sendMessageQueue;
-        this.tableBlockingQueue = tableBlockingQueue;
-        connectionMessageConsumer = messageConsumer;
+        this.pendingMessages = pendingMessages;
+        this.messagesToDisplay = messagesToDisplay;
+        this.connectionMessageConsumer = messageConsumer;
         this.messageProcessor = messageProcessor;
         this.isRunning = new AtomicBoolean();
     }
@@ -49,10 +50,9 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         sendMessageExecutorService = Executors.newFixedThreadPool(numberOfThreads);
         sendMessageExecutorService.execute(
                 new SendMessageQueueConsumer(
-                        logger,
                         messageProcessor,
                         isRunning::get,
-                        sendMessageQueue
+                        pendingMessages
                 )
         );
 
@@ -61,8 +61,7 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         tableExecutorService = Executors.newSingleThreadExecutor();
         tableExecutorService.execute(
                 new TableBlockingQueueConsumer(
-                        logger,
-                        tableBlockingQueue,
+                        messagesToDisplay,
                         isRunning::get,
                         connectionMessageConsumer
                 )
@@ -88,7 +87,7 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         tableExecutorService.shutdownNow();
         logger.logOutput(DEBUG, "tableExecutorService shutdown? " + tableExecutorService.isShutdown());
 
-        sendMessageQueue.clear();
-        tableBlockingQueue.clear();
+        pendingMessages.clear();
+        messagesToDisplay.clear();
     }
 }

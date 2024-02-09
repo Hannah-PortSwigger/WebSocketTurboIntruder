@@ -1,31 +1,28 @@
 package queue;
 
 import attack.AttackStatus;
-import burp.api.montoya.websocket.Direction;
 import data.WebSocketConnectionMessage;
-import logger.Logger;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
 
 public class SendMessageQueueConsumer implements Runnable
 {
-    private final Logger logger;
     private final Consumer<WebSocketConnectionMessage> messageProcessor;
     private final AttackStatus attackStatus;
-    private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
+    private final Supplier<WebSocketConnectionMessage> pendingMessageSupplier;
 
     public SendMessageQueueConsumer(
-            Logger logger,
             Consumer<WebSocketConnectionMessage> messageProcessor,
             AttackStatus attackStatus,
-            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue
+            Supplier<WebSocketConnectionMessage> pendingMessageSupplier
     )
     {
-        this.logger = logger;
         this.messageProcessor = messageProcessor;
         this.attackStatus = attackStatus;
-        this.sendMessageQueue = sendMessageQueue;
+        this.pendingMessageSupplier = pendingMessageSupplier;
     }
 
     @Override
@@ -33,23 +30,15 @@ public class SendMessageQueueConsumer implements Runnable
     {
         while (attackStatus.isRunning())
         {
-            try
-            {
-                WebSocketConnectionMessage webSocketConnectionMessage = sendMessageQueue.take();
+            // TODO - Move into Will? (PendingMessages)
+            WebSocketConnectionMessage webSocketConnectionMessage = pendingMessageSupplier.get();
 
-                if (webSocketConnectionMessage.getDirection() == Direction.CLIENT_TO_SERVER)
-                {
-                    webSocketConnectionMessage.send();
-                }
-
-                messageProcessor.accept(webSocketConnectionMessage);
-            } catch (InterruptedException e)
+            if (webSocketConnectionMessage != null && webSocketConnectionMessage.getDirection() == CLIENT_TO_SERVER)
             {
-                if (attackStatus.isRunning())
-                {
-                    logger.logError("Failed to take message from sendMessageQueue");
-                }
+                webSocketConnectionMessage.send();
             }
+
+            messageProcessor.accept(webSocketConnectionMessage);
         }
     }
 }
