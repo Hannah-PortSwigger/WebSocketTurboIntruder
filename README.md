@@ -11,17 +11,17 @@ Note: This will use a new WebSocket connection to send messages down.
 
 ## Documentation
 
-### `queue_websockets(base_websocket, payload)`
+### `queue_websockets(base_websocket, message)`
 `websocket_connection`: This object has one available method - `create()`. Use this to create a WebSocket connection.
 The `create` method takes `base_websocket` as an argument.
 
 Once you've created your WebSocket connection, you can queue messages to send down this connection.
 
 Use the `queue()` method on this object.
-- `queue(String payload)`: Send payload with no comment set
-- `queue(String payload, String comment)`: Send payload with custom comment
+- `queue(String message)`: Send message with no comment set
+- `queue(String message, String comment)`: Send message with custom comment
 
-`payload` is the contents of the WebSocket message editor in the top half of your screen. You can manually change this, or you can manipulate the String contents in your Python code.
+`message` is the contents of the WebSocket message editor in the top half of your screen. You can manually change this, or you can manipulate the String contents in your Python code.
 
 ### `handle_outgoing_message(websocket_message)`
 Use this method to conditionally add outgoing messages to the results table.
@@ -32,7 +32,7 @@ Use this method to conditionally add incoming messages to the results table.
 
 ### `websocket_message`
 Methods:
-- `getPayload()`: Retrieve the String payload that was sent/received
+- `getMessage()`: Retrieve the String message that was sent/received
 - `getDirection()`: Retrieves a `burp.api.montoya.websocket.Direction`
 - `getLength()`: Retrieves the length of the message
 - `getDateTime()`: Retrieves the `java.time.LocalDateTime` that was set on the object

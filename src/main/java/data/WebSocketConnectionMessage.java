@@ -9,37 +9,37 @@ import static java.time.LocalDateTime.now;
 
 public class WebSocketConnectionMessage implements ConnectionMessage
 {
-    private final String payload;
+    private final String message;
     private final Direction direction;
     private final int length;
     private final LocalDateTime dateTime;
     private String comment;
     private final WebSocketConnection connection;
 
-    public WebSocketConnectionMessage(String payload, Direction direction, WebSocketConnection connection)
+    public WebSocketConnectionMessage(String message, Direction direction, WebSocketConnection connection)
     {
-        this(payload, direction, null, connection);
+        this(message, direction, null, connection);
     }
 
     public WebSocketConnectionMessage(
-            String payload,
+            String message,
             Direction direction,
             String comment,
             WebSocketConnection connection
     )
     {
-        this.payload = payload;
+        this.message = message;
         this.direction = direction;
-        this.length = payload.length();
+        this.length = message.length();
         this.dateTime = now();
         this.comment = comment;
         this.connection = connection;
     }
 
     @Override
-    public String getPayload()
+    public String getMessage()
     {
-        return payload;
+        return message;
     }
 
     @Override
@@ -80,6 +80,6 @@ public class WebSocketConnectionMessage implements ConnectionMessage
 
     public void send()
     {
-        connection.sendMessage(payload);
+        connection.sendMessage(message);
     }
 }
