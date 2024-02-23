@@ -10,21 +10,21 @@ import java.util.function.Supplier;
 
 public class MessagesToDisplay implements Consumer<ConnectionMessage>, Supplier<ConnectionMessage>
 {
-    private final BlockingQueue<ConnectionMessage> tableBlockingQueue;
     private final Logger logger;
     private final AttackStatus attackStatus;
+    private final BlockingQueue<ConnectionMessage> messagesToDisplay;
 
     public MessagesToDisplay(Logger logger, AttackStatus attackStatus)
     {
         this.logger = logger;
         this.attackStatus = attackStatus;
-        this.tableBlockingQueue = new LinkedBlockingQueue<>();
+        this.messagesToDisplay = new LinkedBlockingQueue<>();
     }
 
     @Override
     public void accept(ConnectionMessage connectionMessage)
     {
-        tableBlockingQueue.add(connectionMessage);
+        messagesToDisplay.add(connectionMessage);
     }
 
     @Override
@@ -32,13 +32,13 @@ public class MessagesToDisplay implements Consumer<ConnectionMessage>, Supplier<
     {
         try
         {
-            return tableBlockingQueue.take();
+            return messagesToDisplay.take();
         }
         catch (InterruptedException e)
         {
             if (attackStatus.isRunning())
             {
-                logger.logError("Error taking from tableBlockingQueue.");
+                logger.logError("Error taking from messages to display.");
             }
 
             return null;
@@ -47,6 +47,6 @@ public class MessagesToDisplay implements Consumer<ConnectionMessage>, Supplier<
 
     public void clear()
     {
-        tableBlockingQueue.clear();
+        messagesToDisplay.clear();
     }
 }

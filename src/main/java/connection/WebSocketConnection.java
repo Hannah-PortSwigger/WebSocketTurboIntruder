@@ -1,9 +1,7 @@
 package connection;
 
-import attack.AttackStatus;
 import burp.WebSocketExtensionWebSocketMessageHandler;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.websocket.Direction;
 import burp.api.montoya.websocket.WebSockets;
 import burp.api.montoya.websocket.extension.ExtensionWebSocket;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketCreation;
@@ -12,28 +10,27 @@ import data.WebSocketConnectionMessage;
 import logger.Logger;
 import logger.LoggerLevel;
 
+import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
+
 public class WebSocketConnection implements Connection
 {
     private final Logger logger;
     private final WebSockets webSockets;
     private final PendingMessages pendingMessages;
     private final HttpRequest upgradeRequest;
-    private final AttackStatus attackStatus;
     private final ExtensionWebSocket extensionWebSocket;
 
     public WebSocketConnection(
             Logger logger,
             WebSockets webSockets,
             PendingMessages pendingMessages,
-            HttpRequest upgradeRequest,
-            AttackStatus attackStatus
+            HttpRequest upgradeRequest
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
         this.pendingMessages = pendingMessages;
         this.upgradeRequest = upgradeRequest;
-        this.attackStatus = attackStatus;
 
         extensionWebSocket = createExtensionWebSocket(upgradeRequest);
     }
@@ -41,19 +38,13 @@ public class WebSocketConnection implements Connection
     @Override
     public void queue(String payload)
     {
-        if (attackStatus.isRunning()) // TODO
-        {
-           pendingMessages.accept(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, this));
-        }
+        pendingMessages.accept(new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, this));
     }
 
     @Override
     public void queue(String payload, String comment)
     {
-        if (attackStatus.isRunning())
-        {
-            pendingMessages.accept(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, comment, this));
-        }
+        pendingMessages.accept(new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, comment, this));
     }
 
     @Override

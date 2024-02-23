@@ -13,6 +13,8 @@ import python.ResultsTable;
 
 import java.time.LocalDateTime;
 
+import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
+
 public class AttackScriptExecutor
 {
     private final Interpreter interpreter;
@@ -38,7 +40,7 @@ public class AttackScriptExecutor
         String messageParameterName = "websocket_message";
         interpreter.setVariable(messageParameterName, new DecoratedConnectionMessage(webSocketConnectionMessage));
 
-        String callbackMethod = webSocketConnectionMessage.getDirection() == Direction.CLIENT_TO_SERVER
+        String callbackMethod = webSocketConnectionMessage.getDirection() == CLIENT_TO_SERVER
                 ? "handle_outgoing_message"
                 : "handle_incoming_message";
 

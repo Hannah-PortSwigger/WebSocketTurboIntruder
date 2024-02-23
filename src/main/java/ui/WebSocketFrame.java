@@ -2,6 +2,7 @@ package ui;
 
 import attack.AttackManager;
 import attack.AttackScriptExecutor;
+import attack.AttackStatus;
 import burp.WebSocketFuzzer;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
@@ -55,14 +56,16 @@ public class WebSocketFrame extends JFrame
 
         initComponents();
 
-        this.addWindowListener(new WindowAdapter()
-        {
-            @Override
-            public void windowClosed(WindowEvent e)
+        this.addWindowListener(
+            new WindowAdapter()
             {
-                attackManager.stopAttack();
+                @Override
+                public void windowClosed(WindowEvent e)
+                {
+                    attackManager.stopAttack();
+                }
             }
-        });
+        );
     }
 
     private void initComponents()
@@ -75,14 +78,17 @@ public class WebSocketFrame extends JFrame
         CardLayout cardLayout = new CardLayout();
         JPanel cardDeck = new JPanel(cardLayout);
 
-        PendingMessages pendingMessages = new PendingMessages(logger, attackManager);
-        MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackManager);
+        AtomicReference<AttackManager> attackManagerReference = new AtomicReference<>(); //TODO can we get rid of circular dependency?
+
+        AttackStatus attackStatus = () -> attackManagerReference.get().isRunning();
+
+        PendingMessages pendingMessages = new PendingMessages(logger, attackStatus);
+        MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackStatus);
 
         WebSocketMessageTableModel webSocketMessageTableModel = new WebSocketMessageTableModel();
 
         Consumer<ConnectionMessage> messageConsumer = connectionMessage -> invokeLater(() -> webSocketMessageTableModel.add(connectionMessage));
 
-        AtomicReference<AttackManager> attackManagerReference = new AtomicReference<>();
 
         AttackScriptExecutor scriptExecutor = new AttackScriptExecutor(
                 logger,
@@ -90,8 +96,7 @@ public class WebSocketFrame extends JFrame
                 new ConnectionFactory(
                         logger,
                         webSockets,
-                        pendingMessages,
-                        () -> attackManagerReference.get().isRunning()
+                        pendingMessages
                 )
         );
 

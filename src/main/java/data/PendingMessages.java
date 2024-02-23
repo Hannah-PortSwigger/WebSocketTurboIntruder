@@ -25,7 +25,10 @@ public class PendingMessages implements Consumer<WebSocketConnectionMessage>, Su
     @Override
     public void accept(WebSocketConnectionMessage connectionMessage)
     {
-        unprocessedMessageQueue.add(connectionMessage);
+        if (attackStatus.isRunning())
+        {
+            unprocessedMessageQueue.add(connectionMessage);
+        }
     }
 
     @Override
@@ -34,11 +37,12 @@ public class PendingMessages implements Consumer<WebSocketConnectionMessage>, Su
         try
         {
             return unprocessedMessageQueue.take();
-        } catch (InterruptedException e)
+        }
+        catch (InterruptedException e)
         {
             if (attackStatus.isRunning())
             {
-                logger.logError("Error taking from tableBlockingQueue.");
+                logger.logError("Error taking from pending messages.");
             }
 
             return null;
