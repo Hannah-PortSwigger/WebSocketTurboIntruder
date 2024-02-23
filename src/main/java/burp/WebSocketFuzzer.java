@@ -3,43 +3,47 @@ package burp;
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.extension.Extension;
-import burp.api.montoya.persistence.Persistence;
+import burp.api.montoya.persistence.Preferences;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.websocket.WebSockets;
+import config.FileLocationConfiguration;
 import logger.Logger;
 import logger.LoggerLevel;
-import utils.Utilities;
+import ui.WebSocketFrameFactory;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
+import static utils.Utilities.generateMenu;
 
 public class WebSocketFuzzer implements BurpExtension
 {
     public static final String EXTENSION_NAME = "WebSocket Turbo Intruder";
-    public static final String DEFAULT_SCRIPT_DIRECTORY = "/examples/";
 
     @Override
     public void initialize(MontoyaApi api)
     {
         Extension extension = api.extension();
-        Persistence persistence = api.persistence();
+        Preferences preferences = api.persistence().preferences();
         UserInterface userInterface = api.userInterface();
         WebSockets websockets = api.websockets();
 
         Logger logger = new Logger(api.logging());
+        WebSocketFuzzerFrames frames = new WebSocketFuzzerFrames(logger);
 
-        Utilities.initializeDefaultDirectory(logger, persistence);
+        FileLocationConfiguration fileLocationConfiguration = new FileLocationConfiguration(logger, preferences);
+        WebSocketFrameFactory webSocketFrameFactory = new WebSocketFrameFactory(logger, userInterface, fileLocationConfiguration, websockets);
 
-        List<JFrame> frameList = new ArrayList<>();
+        userInterface.menuBar().registerMenu(generateMenu(logger, fileLocationConfiguration, frames::close));
 
-        JMenu menu = Utilities.generateMenu(logger, persistence, frameList);
-        userInterface.menuBar().registerMenu(menu);
+        userInterface.registerContextMenuItemsProvider(
+                new WebSocketContextMenuItemsProvider(
+                        frames::add,
+                        webSocketFrameFactory
+                )
+        );
 
-        userInterface.registerContextMenuItemsProvider(new WebSocketContextMenuItemsProvider(logger, userInterface, persistence, websockets, frameList));
-        extension.registerUnloadingHandler(new WebSocketExtensionUnloadingHandler(frameList));
+        extension.registerUnloadingHandler(frames::close);
 
         extension.setName(EXTENSION_NAME);
+
         String extensionVersion = WebSocketFuzzer.class.getPackage().getImplementationVersion();
         logger.logOutput(LoggerLevel.DEFAULT, EXTENSION_NAME + " v" + extensionVersion);
     }

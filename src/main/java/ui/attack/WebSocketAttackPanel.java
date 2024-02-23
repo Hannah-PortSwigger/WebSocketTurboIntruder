@@ -1,39 +1,37 @@
 package ui.attack;
 
-import attack.AttackHandler;
+import attack.AttackManager;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
+import ui.PanelSwitcher;
 import ui.attack.table.WebSocketMessageTable;
+import ui.attack.table.WebSocketMessageTableModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebSocketAttackPanel extends JPanel
 {
     private final UserInterface userInterface;
-    private final CardLayout cardLayout;
-    private final JPanel cardDeck;
-    private final AttackHandler attackHandler;
-    private final AtomicBoolean isAttackRunning;
+    private final AttackManager attackManager;
+    private final PanelSwitcher panelSwitcher;
+    private final WebSocketMessageTableModel tableModel;
 
     public WebSocketAttackPanel(
             UserInterface userInterface,
-            CardLayout cardLayout,
-            JPanel cardDeck,
-            AttackHandler attackHandler
+            AttackManager attackManager,
+            PanelSwitcher panelSwitcher,
+            WebSocketMessageTableModel tableModel
     )
     {
         super(new BorderLayout());
 
         this.userInterface = userInterface;
-        this.cardLayout = cardLayout;
-        this.cardDeck = cardDeck;
-        this.attackHandler = attackHandler;
-
-        isAttackRunning = attackHandler.getIsAttackRunning();
+        this.attackManager = attackManager;
+        this.panelSwitcher = panelSwitcher;
+        this.tableModel = tableModel;
 
         initComponents();
     }
@@ -60,7 +58,7 @@ public class WebSocketAttackPanel extends JPanel
 
     private Component getWebSocketMessageTable(WebSocketMessageEditor webSocketMessageEditor, HttpRequestEditor upgradeRequestEditor)
     {
-        return new WebSocketMessageTable(attackHandler.getWebSocketMessageTableModel(), webSocketMessageEditor, upgradeRequestEditor);
+        return new WebSocketMessageTable(tableModel, webSocketMessageEditor, upgradeRequestEditor);
     }
 
     private WebSocketMessageEditor getWebSocketMessageEditor()
@@ -77,23 +75,17 @@ public class WebSocketAttackPanel extends JPanel
     {
         JButton haltConfigureButton = new JButton("Halt");
         haltConfigureButton.addActionListener(l -> {
-            if (isAttackRunning.get())
+            if (attackManager.isRunning())
             {
-                isAttackRunning.set(false);
-
-                attackHandler.shutdownConsumers();
-
+                attackManager.stopAttack();
                 haltConfigureButton.setText("Configure");
             }
             else
             {
-                attackHandler.getWebSocketMessageTableModel().clear();
+                tableModel.clear();
 
                 haltConfigureButton.setText("Halt");
-
-                isAttackRunning.set(true);
-
-                cardLayout.show(cardDeck, "editorPanel");
+                panelSwitcher.showEditorPanel();
             }
         });
 

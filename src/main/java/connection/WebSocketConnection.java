@@ -2,40 +2,35 @@ package connection;
 
 import burp.WebSocketExtensionWebSocketMessageHandler;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.websocket.Direction;
 import burp.api.montoya.websocket.WebSockets;
 import burp.api.montoya.websocket.extension.ExtensionWebSocket;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketCreation;
+import data.PendingMessages;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
 import logger.LoggerLevel;
 
-import java.time.LocalDateTime;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
 
 public class WebSocketConnection implements Connection
 {
     private final Logger logger;
     private final WebSockets webSockets;
-    private final BlockingQueue<WebSocketConnectionMessage> sendMessageQueue;
+    private final PendingMessages pendingMessages;
     private final HttpRequest upgradeRequest;
-    private final AtomicBoolean isAttackRunning;
     private final ExtensionWebSocket extensionWebSocket;
 
-    WebSocketConnection(
+    public WebSocketConnection(
             Logger logger,
             WebSockets webSockets,
-            BlockingQueue<WebSocketConnectionMessage> sendMessageQueue,
-            HttpRequest upgradeRequest,
-            AtomicBoolean isAttackRunning
+            PendingMessages pendingMessages,
+            HttpRequest upgradeRequest
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
-        this.sendMessageQueue = sendMessageQueue;
+        this.pendingMessages = pendingMessages;
         this.upgradeRequest = upgradeRequest;
-        this.isAttackRunning = isAttackRunning;
 
         extensionWebSocket = createExtensionWebSocket(upgradeRequest);
     }
@@ -43,32 +38,13 @@ public class WebSocketConnection implements Connection
     @Override
     public void queue(String payload)
     {
-        if (isAttackRunning.get())
-        {try
-            {
-                sendMessageQueue.put(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), null, this));
-            }
-            catch (InterruptedException e)
-            {
-                logger.logError("Failed to put message on sendMessageQueue");
-            }
-        }
+        pendingMessages.accept(new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, this));
     }
 
     @Override
     public void queue(String payload, String comment)
     {
-        if (isAttackRunning.get())
-        {
-            try
-            {
-                sendMessageQueue.put(new WebSocketConnectionMessage(payload, Direction.CLIENT_TO_SERVER, LocalDateTime.now(), comment, this));
-            }
-            catch (InterruptedException e)
-            {
-                logger.logError("Failed to put message on sendMessageQueue");
-            }
-        }
+        pendingMessages.accept(new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, comment, this));
     }
 
     @Override
@@ -93,7 +69,13 @@ public class WebSocketConnection implements Connection
         {
             extensionWebSocket = extensionWebSocketCreation.webSocket().get();
 
-            extensionWebSocket.registerMessageHandler(new WebSocketExtensionWebSocketMessageHandler(logger, sendMessageQueue, this));
+            extensionWebSocket.registerMessageHandler(
+                    new WebSocketExtensionWebSocketMessageHandler(
+                            logger,
+                            pendingMessages,
+                            this // TODO
+                    )
+            );
         }
         else
         {

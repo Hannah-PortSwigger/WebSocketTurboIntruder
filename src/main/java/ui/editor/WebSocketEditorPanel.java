@@ -1,20 +1,22 @@
 package ui.editor;
 
-import attack.AttackHandler;
-import burp.WebSocketFuzzer;
+import attack.AttackScriptExecutor;
+import attack.AttackStarter;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.persistence.Persistence;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
+import config.FileLocationConfiguration;
 import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import ui.PanelSwitcher;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -29,15 +31,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
+import static javax.swing.JSplitPane.VERTICAL_SPLIT;
+
 public class WebSocketEditorPanel extends JPanel
 {
     private final Logger logger;
     private final UserInterface userInterface;
-    private final Persistence persistence;
-    private final CardLayout cardLayout;
-    private final JPanel cardDeck;
-    private final AttackHandler attackHandler;
+    private final FileLocationConfiguration fileLocationConfiguration;
+    private final AttackStarter attackStarter;
+    private final AttackScriptExecutor scriptExecutor;
     private final WebSocketMessage originalWebSocketMessage;
+    private final PanelSwitcher panelSwitcher;
     private JComboBox<Path> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
     private HttpRequestEditor upgradeHttpMessageEditor;
@@ -46,19 +52,20 @@ public class WebSocketEditorPanel extends JPanel
     public WebSocketEditorPanel(
             Logger logger,
             UserInterface userInterface,
-            Persistence persistence,
-            CardLayout cardLayout,
-            JPanel cardDeck,
-            AttackHandler attackHandler,
-            WebSocketMessage originalWebSocketMessage)
+            FileLocationConfiguration fileLocationConfiguration,
+            AttackStarter attackStarter,
+            AttackScriptExecutor scriptExecutor,
+            WebSocketMessage originalWebSocketMessage,
+            PanelSwitcher panelSwitcher
+    )
     {
         this.logger = logger;
         this.userInterface = userInterface;
-        this.persistence = persistence;
-        this.cardLayout = cardLayout;
-        this.cardDeck = cardDeck;
-        this.attackHandler = attackHandler;
+        this.fileLocationConfiguration = fileLocationConfiguration;
+        this.attackStarter = attackStarter;
+        this.scriptExecutor = scriptExecutor;
         this.originalWebSocketMessage = originalWebSocketMessage;
+        this.panelSwitcher = panelSwitcher;
 
         this.setLayout(new BorderLayout());
 
@@ -67,10 +74,10 @@ public class WebSocketEditorPanel extends JPanel
 
     private void initComponents()
     {
-        JSplitPane editableEditors = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
+        JSplitPane editableEditors = new JSplitPane(HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
         editableEditors.setResizeWeight(0.5);
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
+        JSplitPane splitPane = new JSplitPane(VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
         splitPane.setResizeWeight(0.3);
 
         this.add(splitPane, BorderLayout.CENTER);
@@ -108,7 +115,7 @@ public class WebSocketEditorPanel extends JPanel
             {
                 rSyntaxTextArea.setText(null);
             }
-            else if (path.toString().startsWith(WebSocketFuzzer.DEFAULT_SCRIPT_DIRECTORY))
+            else if (path.toString().startsWith(fileLocationConfiguration.defaultDirectory()))
             {
                 String data = null;
 
@@ -179,10 +186,10 @@ public class WebSocketEditorPanel extends JPanel
 
     private List<Path> getPathList()
     {
-        String websocketScriptsPath = persistence.preferences().getString("websocketsScriptsPath");
+        String websocketScriptsPath = fileLocationConfiguration.getWebSocketScriptPath();
         List<Path> pathList = new ArrayList<>();
 
-        if (WebSocketFuzzer.DEFAULT_SCRIPT_DIRECTORY.equals(websocketScriptsPath))
+        if (fileLocationConfiguration.isDefault())
         {
             URL url = WebSocketEditorPanel.class.getResource(websocketScriptsPath);
             if (url != null)
@@ -234,7 +241,7 @@ public class WebSocketEditorPanel extends JPanel
             if (option == JFileChooser.APPROVE_OPTION)
             {
                 File file = scriptsFileChooser.getSelectedFile();
-                persistence.preferences().setString("websocketsScriptsPath", file.getAbsolutePath());
+                fileLocationConfiguration.setWebSocketScriptPath(file.getAbsolutePath());
 
                 int originalSize = scriptComboBox.getItemCount();
 
@@ -291,30 +298,31 @@ public class WebSocketEditorPanel extends JPanel
         return codeEditor;
     }
 
-    private JButton getAttackButton(RSyntaxTextArea rSyntaxTextArea)
+    private JButton getAttackButton(JTextComponent scriptTextComponent)
     {
         JButton attackButton = new JButton("Attack");
         attackButton.addActionListener(l -> {
             String payload = webSocketsMessageEditor.getContents().toString();
             HttpRequest upgradeRequest = upgradeHttpMessageEditor.getRequest();
 
-            String jythonCode = rSyntaxTextArea.getText();
+            String script = scriptTextComponent.getText();
 
-            new Thread(() -> {
+            attackStarter.startAttack((int) numberOfThreadsSpinner.getValue());
+
+            newSingleThreadExecutor().submit(() ->
+            {
                 try
                 {
-                    attackHandler.executeJython(payload, upgradeRequest, jythonCode);
+                    scriptExecutor.startAttack(payload, upgradeRequest, script);
                 }
                 catch (Exception e)
                 {
                     JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
                     logger.logError("Jython code error. Please review.\r\n" + e);
                 }
-            }).start();
+            });
 
-            attackHandler.startConsumers((int) numberOfThreadsSpinner.getValue());
-
-            SwingUtilities.invokeLater(() -> cardLayout.show(cardDeck, "attackPanel"));
+            panelSwitcher.showAttackPanel();
         });
 
         return attackButton;

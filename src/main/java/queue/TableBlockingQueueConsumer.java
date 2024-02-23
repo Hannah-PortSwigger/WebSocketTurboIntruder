@@ -1,48 +1,38 @@
 package queue;
 
+import attack.AttackStatus;
 import data.ConnectionMessage;
-import logger.Logger;
-import ui.attack.table.WebSocketMessageTableModel;
 
-import java.awt.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class TableBlockingQueueConsumer implements Runnable
 {
-    private final Logger logger;
-    private final BlockingQueue<ConnectionMessage> queue;
-    private final WebSocketMessageTableModel tableModel;
-    private final AtomicBoolean isAttackRunning;
+    private final Supplier<ConnectionMessage> queue;
+    private final Consumer<ConnectionMessage> messageConsumer;
+    private final AttackStatus attackStatus;
 
     public TableBlockingQueueConsumer(
-            Logger logger,
-            WebSocketMessageTableModel tableModel,
-            BlockingQueue<ConnectionMessage> queue,
-            AtomicBoolean isAttackRunning
+            Supplier<ConnectionMessage> queue,
+            AttackStatus attackStatus,
+            Consumer<ConnectionMessage> messageConsumer
     )
     {
-        this.logger = logger;
         this.queue = queue;
-        this.tableModel = tableModel;
-        this.isAttackRunning = isAttackRunning;
+        this.messageConsumer = messageConsumer;
+        this.attackStatus = attackStatus;
     }
 
     @Override
     public void run()
     {
-        while (isAttackRunning.get())
+        while (attackStatus.isRunning())
         {
-            try
-            {
-                ConnectionMessage connectionMessage = queue.take();
-                EventQueue.invokeLater(() -> tableModel.add(connectionMessage));
-            } catch (InterruptedException e)
-            {
-                if (isAttackRunning.get())
-                {
-                    logger.logError("Error taking from tableBlockingQueue.");
-                }
+            ConnectionMessage connectionMessage = queue.get();
+
+            if (connectionMessage != null)
+            { // TODO - push down
+                messageConsumer.accept(connectionMessage);
             }
         }
     }
