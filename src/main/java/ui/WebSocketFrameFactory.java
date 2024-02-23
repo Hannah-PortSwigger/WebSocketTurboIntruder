@@ -17,8 +17,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static javax.swing.SwingUtilities.invokeLater;
-
 public class WebSocketFrameFactory
 {
     private final Logger logger;
@@ -63,7 +61,7 @@ public class WebSocketFrameFactory
                 logger,
                 pendingMessages,
                 messagesToDisplay,
-                connectionMessage -> invokeLater(() -> webSocketMessageTableModel.add(connectionMessage)), // TODO
+                webSocketMessageTableModel::add,
                 scriptExecutor::processMessage
         );
 

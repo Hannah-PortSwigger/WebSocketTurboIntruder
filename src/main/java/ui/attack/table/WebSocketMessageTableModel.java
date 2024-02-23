@@ -7,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.awt.EventQueue.invokeLater;
+
 public class WebSocketMessageTableModel extends AbstractTableModel
 {
     private final List<ConnectionMessage> connectionMessageList;
@@ -60,9 +62,12 @@ public class WebSocketMessageTableModel extends AbstractTableModel
 
     public void add(ConnectionMessage connectionMessage)
     {
-        int index = connectionMessageList.size();
-        connectionMessageList.add(connectionMessage);
-        fireTableRowsInserted(index, index);
+        invokeLater(() ->
+        {
+            int index = connectionMessageList.size();
+            connectionMessageList.add(connectionMessage);
+            fireTableRowsInserted(index, index);
+        });
     }
 
     public ConnectionMessage get(int rowIndex)
@@ -80,6 +85,6 @@ public class WebSocketMessageTableModel extends AbstractTableModel
         }
 
         connectionMessageList.clear();
-        fireTableRowsDeleted(0, rows-1);
+        fireTableRowsDeleted(0, rows - 1);
     }
 }
