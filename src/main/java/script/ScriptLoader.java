@@ -1,4 +1,4 @@
-package utils;
+package script;
 
 import config.FileLocationConfiguration;
 import ui.editor.WebSocketEditorPanel;
@@ -22,10 +22,10 @@ public class ScriptLoader
         this.fileLocationConfiguration = fileLocationConfiguration;
     }
 
-    public List<Path> getPathList()
+    public List<Script> loadScripts()
     {
         String websocketScriptsPath = fileLocationConfiguration.getWebSocketScriptPath();
-        List<Path> pathList = new ArrayList<>();
+        List<Script> scriptList = new ArrayList<>();
 
         if (fileLocationConfiguration.isDefault())
         {
@@ -43,7 +43,7 @@ public class ScriptLoader
                         stream.forEach(path -> {
                             if (path.toString().endsWith(".py"))
                             {
-                                pathList.add(path);
+                                scriptList.add(new Script(path, true));
                             }
                         });
                     }
@@ -66,7 +66,7 @@ public class ScriptLoader
                 stream.forEach(path -> {
                     if (path.toString().endsWith(".py"))
                     {
-                        pathList.add(path);
+                        scriptList.add(new Script(path, false));
                     }
                 });
             } catch (IOException e)
@@ -74,6 +74,6 @@ public class ScriptLoader
                 throw new RuntimeException(e);
             }
         }
-        return pathList;
+        return scriptList;
     }
 }

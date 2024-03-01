@@ -13,18 +13,15 @@ import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import script.Script;
+import script.ScriptLoader;
 import ui.PanelSwitcher;
-import utils.ScriptLoader;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -41,7 +38,7 @@ public class WebSocketEditorPanel extends JPanel
     private final WebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
     private final ScriptLoader scriptLoader;
-    private JComboBox<Path> scriptComboBox;
+    private JComboBox<Script> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
     private HttpRequestEditor upgradeHttpMessageEditor;
     private JSpinner numberOfThreadsSpinner;
@@ -107,42 +104,9 @@ public class WebSocketEditorPanel extends JPanel
         RTextScrollPane scrollableCodeEditor = new RTextScrollPane(rSyntaxTextArea);
 
         scriptComboBox.addActionListener(l -> {
-            Path path = scriptComboBox.getItemAt(scriptComboBox.getSelectedIndex());
+            Script script = scriptComboBox.getItemAt(scriptComboBox.getSelectedIndex());
 
-            if (!path.toString().contains(".py"))
-            {
-                rSyntaxTextArea.setText(null);
-            }
-            else if (path.toString().startsWith(fileLocationConfiguration.defaultDirectory()))
-            {
-                String data = null;
-
-                try (InputStream stream = WebSocketEditorPanel.class.getResourceAsStream(path.toString()))
-                {
-                    if (stream != null)
-                    {
-                        data = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-                    }
-                } catch (IOException e)
-                {
-                    throw new RuntimeException(e);
-                }
-
-                rSyntaxTextArea.setText(data);
-            }
-            else
-            {
-                String content;
-                try
-                {
-                    content = Files.readString(path);
-                } catch (IOException e)
-                {
-                    throw new RuntimeException(e);
-                }
-
-                rSyntaxTextArea.setText(content);
-            }
+            rSyntaxTextArea.setText(script.content());
         });
 
         scrollableCodeEditor.setLineNumbersEnabled(true);
@@ -175,11 +139,11 @@ public class WebSocketEditorPanel extends JPanel
         return buttonPanel;
     }
 
-    private JComboBox<Path> getScriptComboBox()
+    private JComboBox<Script> getScriptComboBox()
     {
-        List<Path> pathList = scriptLoader.getPathList();
+        List<Script> scriptList = scriptLoader.loadScripts();
 
-        return new JComboBox<>(pathList.toArray(Path[]::new));
+        return new JComboBox<>(scriptList.toArray(new Script[0]));
     }
 
     private JButton getScriptsDirectoryButton()
@@ -198,11 +162,11 @@ public class WebSocketEditorPanel extends JPanel
 
                 int originalSize = scriptComboBox.getItemCount();
 
-                List<Path> pathList = scriptLoader.getPathList();
+                List<Script> scriptList = scriptLoader.loadScripts();
 
-                for (Path path : pathList)
+                for (Script script : scriptList)
                 {
-                    scriptComboBox.addItem(path);
+                    scriptComboBox.addItem(script);
                 }
 
                 for (int i=0; i < originalSize; i++)
