@@ -14,6 +14,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import ui.PanelSwitcher;
+import utils.ScriptLoader;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -21,15 +22,10 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
@@ -44,6 +40,7 @@ public class WebSocketEditorPanel extends JPanel
     private final AttackScriptExecutor scriptExecutor;
     private final WebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
+    private final ScriptLoader scriptLoader;
     private JComboBox<Path> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
     private HttpRequestEditor upgradeHttpMessageEditor;
@@ -66,6 +63,7 @@ public class WebSocketEditorPanel extends JPanel
         this.scriptExecutor = scriptExecutor;
         this.originalWebSocketMessage = originalWebSocketMessage;
         this.panelSwitcher = panelSwitcher;
+        this.scriptLoader = new ScriptLoader(fileLocationConfiguration);
 
         this.setLayout(new BorderLayout());
 
@@ -179,54 +177,9 @@ public class WebSocketEditorPanel extends JPanel
 
     private JComboBox<Path> getScriptComboBox()
     {
-        List<Path> pathList = getPathList();
+        List<Path> pathList = scriptLoader.getPathList();
 
         return new JComboBox<>(pathList.toArray(Path[]::new));
-    }
-
-    private List<Path> getPathList()
-    {
-        String websocketScriptsPath = fileLocationConfiguration.getWebSocketScriptPath();
-        List<Path> pathList = new ArrayList<>();
-
-        if (fileLocationConfiguration.isDefault())
-        {
-            URL url = WebSocketEditorPanel.class.getResource(websocketScriptsPath);
-            if (url != null)
-            {
-                Stream<Path> stream  = null;
-                try
-                {
-                    URI uri = url.toURI();
-
-                    try (FileSystem fs = FileSystems.newFileSystem(uri, new HashMap<>())) {
-                        stream = Files.walk(Paths.get(uri));
-
-                        stream.forEach(pathList::add);
-                    }
-                } catch (IOException | URISyntaxException e)
-                {
-                    throw new RuntimeException(e);
-                } finally
-                {
-                    if (stream != null)
-                    {
-                        stream.close();
-                    }
-                }
-            }
-        }
-        else
-        {
-            try (Stream<Path> stream = Files.walk(Paths.get(websocketScriptsPath)))
-            {
-                stream.forEach(pathList::add);
-            } catch (IOException e)
-            {
-                throw new RuntimeException(e);
-            }
-        }
-        return pathList;
     }
 
     private JButton getScriptsDirectoryButton()
@@ -245,7 +198,7 @@ public class WebSocketEditorPanel extends JPanel
 
                 int originalSize = scriptComboBox.getItemCount();
 
-                List<Path> pathList = getPathList();
+                List<Path> pathList = scriptLoader.getPathList();
 
                 for (Path path : pathList)
                 {
