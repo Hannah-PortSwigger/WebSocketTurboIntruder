@@ -43,7 +43,7 @@ public class ScriptLoader
                         stream.forEach(path -> {
                             if (path.toString().endsWith(".py"))
                             {
-                                scriptList.add(new Script(path, true));
+                                scriptList.add(new ClasspathScript(path));
                             }
                         });
                     }
@@ -66,7 +66,7 @@ public class ScriptLoader
                 stream.forEach(path -> {
                     if (path.toString().endsWith(".py"))
                     {
-                        scriptList.add(new Script(path, false));
+                        scriptList.add(new FilepathScript(path));
                     }
                 });
             } catch (IOException e)
