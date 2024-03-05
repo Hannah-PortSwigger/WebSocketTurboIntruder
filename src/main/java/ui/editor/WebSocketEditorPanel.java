@@ -14,7 +14,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import script.Script;
-import script.ScriptLoader;
+import script.ScriptLoaderFacade;
 import ui.PanelSwitcher;
 
 import javax.swing.*;
@@ -37,7 +37,7 @@ public class WebSocketEditorPanel extends JPanel
     private final AttackScriptExecutor scriptExecutor;
     private final WebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
-    private final ScriptLoader scriptLoader;
+    private final ScriptLoaderFacade scriptLoader;
     private JComboBox<Script> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
     private HttpRequestEditor upgradeHttpMessageEditor;
@@ -60,7 +60,7 @@ public class WebSocketEditorPanel extends JPanel
         this.scriptExecutor = scriptExecutor;
         this.originalWebSocketMessage = originalWebSocketMessage;
         this.panelSwitcher = panelSwitcher;
-        this.scriptLoader = new ScriptLoader(fileLocationConfiguration);
+        this.scriptLoader = new ScriptLoaderFacade(fileLocationConfiguration);
 
         this.setLayout(new BorderLayout());
 
