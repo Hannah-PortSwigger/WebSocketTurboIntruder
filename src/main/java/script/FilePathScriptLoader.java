@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 class FilePathScriptLoader implements ScriptLoader
 {
+    @Override
     public List<Script> loadScripts(String path)
     {
         try (Stream<Path> stream = Files.walk(Paths.get(path)))

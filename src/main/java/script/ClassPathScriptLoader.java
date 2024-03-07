@@ -13,6 +13,7 @@ import static java.util.Collections.emptyList;
 
 class ClassPathScriptLoader implements ScriptLoader
 {
+    @Override
     public List<Script> loadScripts(String path)
     {
         URL url = this.getClass().getResource(path);
