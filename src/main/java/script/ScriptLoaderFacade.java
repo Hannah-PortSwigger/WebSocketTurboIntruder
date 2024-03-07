@@ -15,16 +15,7 @@ public class ScriptLoaderFacade
 
     public List<Script> loadScripts()
     {
-        ScriptLoader scriptLoader;
-
-        if (fileLocationConfiguration.isDefault())
-        {
-            scriptLoader = new ClassPathScriptLoader();
-        }
-        else
-        {
-            scriptLoader = new FilePathScriptLoader();
-        }
+        ScriptLoader scriptLoader = fileLocationConfiguration.isDefault() ? new ClassPathScriptLoader() : new FilePathScriptLoader();
 
         return scriptLoader.loadScripts(fileLocationConfiguration.getWebSocketScriptPath());
     }
