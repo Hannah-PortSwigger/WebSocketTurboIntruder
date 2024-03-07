@@ -15,6 +15,7 @@ class FilePathScriptLoader implements ScriptLoader
         {
             return stream
                     .filter(scriptPath -> scriptPath.toString().endsWith(".py"))
+                    .sorted()
                     .map(scriptPath -> (Script) new FilepathScript(scriptPath))
                     .toList();
         } catch (IOException e)

@@ -33,6 +33,7 @@ class ClassPathScriptLoader implements ScriptLoader
 
                 return stream
                         .filter(scriptPath -> scriptPath.toString().endsWith(".py"))
+                        .sorted()
                         .map(scriptPath -> (Script) new ClasspathScript(scriptPath))
                         .toList();
             }
