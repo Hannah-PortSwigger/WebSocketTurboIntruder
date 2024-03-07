@@ -1,4 +1,4 @@
-def queue_websockets(upgrade_request, payload):
+def queue_websockets(upgrade_request, message):
     connection1 = websocket_connection.create(upgrade_request)
     connection2 = websocket_connection.create(upgrade_request.withHeader("Cookie", "session=foo"))
 

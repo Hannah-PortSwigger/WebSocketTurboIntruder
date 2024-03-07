@@ -26,13 +26,13 @@ public class AttackScriptExecutor
         interpreter.setVariable("results_table", new ResultsTable(messagesToDisplay));
     }
 
-    public void startAttack(String payload, HttpRequest upgradeRequest, String editorCodeString)
+    public void startAttack(String message, HttpRequest upgradeRequest, String editorCodeString)
     {
-        interpreter.setVariable("payload", payload);
+        interpreter.setVariable("message", message);
         interpreter.setVariable("upgrade_request", upgradeRequest);
 
         interpreter.execute(editorCodeString);
-        interpreter.execute("queue_websockets(upgrade_request, payload)");
+        interpreter.execute("queue_websockets(upgrade_request, message)");
     }
 
     public void processMessage(WebSocketConnectionMessage webSocketConnectionMessage)
@@ -57,9 +57,9 @@ public class AttackScriptExecutor
         }
 
         @Override
-        public String getPayload()
+        public String getMessage()
         {
-            return webSocketConnectionMessage.getPayload();
+            return webSocketConnectionMessage.getMessage();
         }
 
         @Override

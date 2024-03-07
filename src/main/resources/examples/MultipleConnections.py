@@ -1,9 +1,9 @@
-def queue_websockets(upgrade_request, payload):
+def queue_websockets(upgrade_request, message):
     connection1 = websocket_connection.create(upgrade_request)
     connection2 = websocket_connection.create(upgrade_request)
 
     for i in range(10):
-        connection1.queue(payload)
+        connection1.queue(message)
         connection2.queue("foo")
 
 def handle_outgoing_message(websocket_message):

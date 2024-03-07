@@ -1,12 +1,13 @@
 package ui.attack.table;
 
-import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import data.ConnectionMessage;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static burp.api.montoya.core.ByteArray.byteArray;
 
 public class WebSocketMessageTable extends JPanel
 {
@@ -24,7 +25,7 @@ public class WebSocketMessageTable extends JPanel
             {
                 ConnectionMessage webSocketConnectionMessage = webSocketMessageTableModel.get(rowIndex);
 
-                webSocketMessageEditor.setContents(ByteArray.byteArray(webSocketConnectionMessage.getPayload()));
+                webSocketMessageEditor.setContents(byteArray(webSocketConnectionMessage.getMessage()));
 
                 upgradeRequestEditor.setRequest(webSocketConnectionMessage.getConnection().upgradeRequest());
 

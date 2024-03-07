@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public interface ConnectionMessage
 {
-    String getPayload();
+    String getMessage();
 
     Direction getDirection();
 
