@@ -18,7 +18,8 @@ class FilePathScriptLoader implements ScriptLoader
                     .sorted()
                     .map(scriptPath -> (Script) new FilepathScript(scriptPath))
                     .toList();
-        } catch (IOException e)
+        }
+        catch (IOException e)
         {
             throw new RuntimeException(e);
         }
