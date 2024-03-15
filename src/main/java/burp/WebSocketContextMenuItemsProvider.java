@@ -3,6 +3,7 @@ package burp;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import burp.api.montoya.ui.contextmenu.WebSocketContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.WebSocketMessage;
+import data.InitialWebSocketMessage;
 import ui.WebSocketFrameFactory;
 
 import javax.swing.*;
@@ -42,6 +43,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
                 : event.selectedWebSocketMessages();
 
         webSocketMessageList.stream()
+                .map(webSocketMessage -> new InitialWebSocketMessage(webSocketMessage.upgradeRequest(), webSocketMessage.payload()))
                 .map(webSocketFrameFactory::from)
                 .forEach(newFrameConsumer);
     }

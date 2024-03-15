@@ -3,8 +3,8 @@ package ui;
 import attack.AttackManager;
 import attack.AttackScriptExecutor;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import config.FileLocationConfiguration;
+import data.InitialWebSocketMessage;
 import logger.Logger;
 import ui.attack.WebSocketAttackPanel;
 import ui.attack.table.WebSocketMessageTableModel;
@@ -25,7 +25,7 @@ public class WebSocketFrame extends JFrame
             Logger logger,
             UserInterface userInterface,
             FileLocationConfiguration fileLocationConfiguration,
-            WebSocketMessage webSocketMessage,
+            InitialWebSocketMessage webSocketMessage,
             AttackScriptExecutor scriptExecutor,
             WebSocketMessageTableModel webSocketMessageTableModel,
             AttackManager attackManager

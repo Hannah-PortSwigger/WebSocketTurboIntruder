@@ -4,9 +4,9 @@ import attack.AttackManager;
 import attack.AttackScriptExecutor;
 import attack.AttackStatus;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.WebSockets;
 import config.FileLocationConfiguration;
+import data.InitialWebSocketMessage;
 import data.MessagesToDisplay;
 import data.PendingMessages;
 import logger.Logger;
@@ -37,7 +37,7 @@ public class WebSocketFrameFactory
         this.webSockets = webSockets;
     }
 
-    public WebSocketFrame from(WebSocketMessage webSocketMessage)
+    public WebSocketFrame from(InitialWebSocketMessage webSocketMessage)
     {
         AtomicReference<AttackManager> attackManagerReference = new AtomicReference<>();
         AttackStatus attackStatus = () -> attackManagerReference.get().isRunning();

@@ -5,10 +5,10 @@ import attack.AttackStarter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import config.FileLocationConfiguration;
+import data.InitialWebSocketMessage;
 import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -35,7 +35,7 @@ public class WebSocketEditorPanel extends JPanel
     private final FileLocationConfiguration fileLocationConfiguration;
     private final AttackStarter attackStarter;
     private final AttackScriptExecutor scriptExecutor;
-    private final WebSocketMessage originalWebSocketMessage;
+    private final InitialWebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
     private final ScriptLoaderFacade scriptLoader;
     private JComboBox<Script> scriptComboBox;
@@ -49,7 +49,7 @@ public class WebSocketEditorPanel extends JPanel
             FileLocationConfiguration fileLocationConfiguration,
             AttackStarter attackStarter,
             AttackScriptExecutor scriptExecutor,
-            WebSocketMessage originalWebSocketMessage,
+            InitialWebSocketMessage originalWebSocketMessage,
             PanelSwitcher panelSwitcher
     )
     {
@@ -81,7 +81,7 @@ public class WebSocketEditorPanel extends JPanel
     private Component getWebSocketMessageEditor()
     {
         webSocketsMessageEditor = userInterface.createWebSocketMessageEditor();
-        webSocketsMessageEditor.setContents(originalWebSocketMessage.payload());
+        webSocketsMessageEditor.setContents(originalWebSocketMessage.message());
 
         return webSocketsMessageEditor.uiComponent();
     }
