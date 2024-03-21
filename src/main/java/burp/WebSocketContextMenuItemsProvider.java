@@ -2,8 +2,7 @@ package burp;
 
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import burp.api.montoya.ui.contextmenu.WebSocketContextMenuEvent;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
-import data.InitialWebSocketMessage;
+import data.WebSocketContextMenuEventAdapter;
 import ui.WebSocketFrameFactory;
 
 import javax.swing.*;
@@ -17,6 +16,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
 {
     private final Consumer<JFrame> newFrameConsumer;
     private final WebSocketFrameFactory webSocketFrameFactory;
+    private final WebSocketContextMenuEventAdapter webSocketContextMenuEventAdapter;
 
     public WebSocketContextMenuItemsProvider(
             Consumer<JFrame> newFrameConsumer,
@@ -25,6 +25,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
     {
         this.newFrameConsumer = newFrameConsumer;
         this.webSocketFrameFactory = webSocketFrameFactory;
+        this.webSocketContextMenuEventAdapter = new WebSocketContextMenuEventAdapter();
     }
 
     @Override
@@ -38,12 +39,7 @@ public class WebSocketContextMenuItemsProvider implements ContextMenuItemsProvid
 
     private void performAction(WebSocketContextMenuEvent event)
     {
-        List<WebSocketMessage> webSocketMessageList = event.messageEditorWebSocket().isPresent()
-                ? List.of(event.messageEditorWebSocket().get().webSocketMessage())
-                : event.selectedWebSocketMessages();
-
-        webSocketMessageList.stream()
-                .map(webSocketMessage -> new InitialWebSocketMessage(webSocketMessage.upgradeRequest(), webSocketMessage.payload()))
+        webSocketContextMenuEventAdapter.apply(event).stream()
                 .map(webSocketFrameFactory::from)
                 .forEach(newFrameConsumer);
     }
