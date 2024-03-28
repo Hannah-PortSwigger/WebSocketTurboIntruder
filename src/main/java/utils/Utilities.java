@@ -34,9 +34,8 @@ public class Utilities
     public static ByteArray insertPlaceholder(ByteArray initialPayload, Range range, String placeholder)
     {
         ByteArray prependArr = range.startIndexInclusive() == 0 ? byteArray() : initialPayload.subArray(0, range.startIndexInclusive());
-        ByteArray percentArr = byteArray(placeholder);
         ByteArray postpendArr = range.endIndexExclusive() == initialPayload.length() ? byteArray() : initialPayload.subArray(range.endIndexExclusive(), initialPayload.length());
 
-        return prependArr.withAppended(percentArr).withAppended(postpendArr);
+        return prependArr.withAppended(placeholder).withAppended(postpendArr);
     }
 }
