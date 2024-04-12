@@ -3,7 +3,9 @@ package interpreter;
 import logger.Logger;
 import org.python.util.PythonInterpreter;
 
-public class Interpreter
+import java.io.Closeable;
+
+public class Interpreter implements Closeable
 {
     private final PythonInterpreter interpreter;
 
@@ -23,5 +25,11 @@ public class Interpreter
     public void execute(String code)
     {
         interpreter.exec(code);
+    }
+
+    @Override
+    public void close()
+    {
+        interpreter.close();
     }
 }

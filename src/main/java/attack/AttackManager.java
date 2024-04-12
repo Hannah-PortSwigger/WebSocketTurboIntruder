@@ -3,7 +3,6 @@ package attack;
 import data.ConnectionMessage;
 import data.MessagesToDisplay;
 import data.PendingMessages;
-import data.WebSocketConnectionMessage;
 import logger.Logger;
 import queue.SendMessageQueueConsumer;
 import queue.TableBlockingQueueConsumer;
@@ -21,7 +20,7 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
     private final PendingMessages pendingMessages;
     private final MessagesToDisplay messagesToDisplay;
     private final Consumer<ConnectionMessage> connectionMessageConsumer;
-    private final Consumer<WebSocketConnectionMessage> messageProcessor;
+    private final AttackScriptExecutor scriptExecutor;
     private final AtomicBoolean isRunning;
 
     private ExecutorService sendMessageExecutorService;
@@ -32,13 +31,14 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
             PendingMessages pendingMessages,
             MessagesToDisplay messagesToDisplay,
             Consumer<ConnectionMessage> messageConsumer,
-            Consumer<WebSocketConnectionMessage> messageProcessor)
+            AttackScriptExecutor scriptExecutor
+    )
     {
         this.logger = logger;
         this.pendingMessages = pendingMessages;
         this.messagesToDisplay = messagesToDisplay;
         this.connectionMessageConsumer = messageConsumer;
-        this.messageProcessor = messageProcessor;
+        this.scriptExecutor = scriptExecutor;
         this.isRunning = new AtomicBoolean();
     }
 
@@ -50,7 +50,7 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         sendMessageExecutorService = Executors.newFixedThreadPool(numberOfThreads);
         sendMessageExecutorService.execute(
                 new SendMessageQueueConsumer(
-                        messageProcessor,
+                        scriptExecutor::processMessage,
                         isRunning::get,
                         pendingMessages
                 )
@@ -80,6 +80,8 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
     public void stopAttack()
     {
         isRunning.set(false);
+
+        scriptExecutor.stopAttack();
 
         sendMessageExecutorService.shutdownNow();
         logger.logOutput(DEBUG, "sendMessageExecutorService shutdown? " + sendMessageExecutorService.isShutdown());

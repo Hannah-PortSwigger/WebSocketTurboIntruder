@@ -62,7 +62,7 @@ public class WebSocketFrameFactory
                 pendingMessages,
                 messagesToDisplay,
                 webSocketMessageTableModel::add,
-                scriptExecutor::processMessage
+                scriptExecutor
         );
 
         attackManagerReference.set(attackManager);

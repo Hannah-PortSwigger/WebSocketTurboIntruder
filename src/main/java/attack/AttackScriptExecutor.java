@@ -17,17 +17,25 @@ import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
 
 public class AttackScriptExecutor
 {
-    private final Interpreter interpreter;
+    private final Logger logger;
+    private final MessagesToDisplay messagesToDisplay;
+    private final ConnectionFactory connectionFactory;
+
+    private Interpreter interpreter;
 
     public AttackScriptExecutor(Logger logger, MessagesToDisplay messagesToDisplay, ConnectionFactory connectionFactory)
     {
-        interpreter = new Interpreter(logger);
-        interpreter.setVariable("websocket_connection", connectionFactory);
-        interpreter.setVariable("results_table", new ResultsTable(messagesToDisplay));
+        this.logger = logger;
+        this.messagesToDisplay = messagesToDisplay;
+        this.connectionFactory = connectionFactory;
     }
 
     public void startAttack(String message, HttpRequest upgradeRequest, String editorCodeString)
     {
+        interpreter = new Interpreter(logger);
+        interpreter.setVariable("websocket_connection", connectionFactory);
+        interpreter.setVariable("results_table", new ResultsTable(messagesToDisplay));
+
         interpreter.setVariable("message", message);
         interpreter.setVariable("upgrade_request", upgradeRequest);
 
@@ -45,6 +53,11 @@ public class AttackScriptExecutor
                 : "handle_incoming_message";
 
         interpreter.execute(String.format("%s(%s)", callbackMethod, messageParameterName));
+    }
+
+    public void stopAttack()
+    {
+        interpreter.close();
     }
 
     private static class DecoratedConnectionMessage implements ConnectionMessage
