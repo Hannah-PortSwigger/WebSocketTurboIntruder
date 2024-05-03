@@ -14,13 +14,14 @@ import java.util.function.Consumer;
 
 import static logger.LoggerLevel.DEBUG;
 
-public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
+public class AttackManager implements AttackStarter, AttackStopper
 {
     private final Logger logger;
     private final PendingMessages pendingMessages;
     private final MessagesToDisplay messagesToDisplay;
     private final Consumer<ConnectionMessage> connectionMessageConsumer;
     private final AttackScriptExecutor scriptExecutor;
+    private final AttackStatus attackStatus;
     private final AtomicBoolean isRunning;
 
     private ExecutorService sendMessageExecutorService;
@@ -31,7 +32,9 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
             PendingMessages pendingMessages,
             MessagesToDisplay messagesToDisplay,
             Consumer<ConnectionMessage> messageConsumer,
-            AttackScriptExecutor scriptExecutor
+            AttackScriptExecutor scriptExecutor,
+            AttackStatus attackStatus,
+            AtomicBoolean isAttackRunning
     )
     {
         this.logger = logger;
@@ -39,7 +42,8 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         this.messagesToDisplay = messagesToDisplay;
         this.connectionMessageConsumer = messageConsumer;
         this.scriptExecutor = scriptExecutor;
-        this.isRunning = new AtomicBoolean();
+        this.attackStatus = attackStatus;
+        this.isRunning = isAttackRunning;
     }
 
     @Override
@@ -51,7 +55,7 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         sendMessageExecutorService.execute(
                 new SendMessageQueueConsumer(
                         scriptExecutor::processMessage,
-                        isRunning::get,
+                        attackStatus,
                         pendingMessages
                 )
         );
@@ -62,7 +66,7 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         tableExecutorService.execute(
                 new TableBlockingQueueConsumer(
                         messagesToDisplay,
-                        isRunning::get,
+                        attackStatus,
                         connectionMessageConsumer
                 )
         );
@@ -70,10 +74,9 @@ public class AttackManager implements AttackStarter, AttackStatus, AttackStopper
         logger.logOutput(DEBUG, "Table thread started.");
     }
 
-    @Override
-    public boolean isRunning()
+    public boolean isAttackRunning()
     {
-        return isRunning.get();
+        return attackStatus.isRunning();
     }
 
     @Override

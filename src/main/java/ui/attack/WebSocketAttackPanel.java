@@ -75,7 +75,7 @@ public class WebSocketAttackPanel extends JPanel
     {
         JButton haltConfigureButton = new JButton("Halt");
         haltConfigureButton.addActionListener(l -> {
-            if (attackManager.isRunning())
+            if (attackManager.isAttackRunning())
             {
                 attackManager.stopAttack();
                 haltConfigureButton.setText("Configure");

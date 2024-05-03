@@ -10,12 +10,13 @@ import data.InitialWebSocketMessage;
 import data.MessagesToDisplay;
 import data.PendingMessages;
 import logger.Logger;
-import python.ConnectionFactory;
+import python.ConnectionFactoryFactory;
 import ui.attack.table.WebSocketMessageTableModel;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebSocketFrameFactory
 {
@@ -39,8 +40,23 @@ public class WebSocketFrameFactory
 
     public WebSocketFrame from(InitialWebSocketMessage webSocketMessage)
     {
-        AtomicReference<AttackManager> attackManagerReference = new AtomicReference<>();
-        AttackStatus attackStatus = () -> attackManagerReference.get().isRunning();
+        AtomicBoolean isAttackRunning = new AtomicBoolean();
+        AtomicInteger attackId = new AtomicInteger();
+
+        AttackStatus attackStatus = new AttackStatus() //TODO object?
+        {
+            @Override
+            public boolean isRunning()
+            {
+                return isAttackRunning.get();
+            }
+
+            @Override
+            public boolean isCurrentAttackId(int id)
+            {
+                return attackId.get() == id;
+            }
+        };
 
         MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackStatus);
         PendingMessages pendingMessages = new PendingMessages(logger, attackStatus);
@@ -48,11 +64,13 @@ public class WebSocketFrameFactory
         AttackScriptExecutor scriptExecutor = new AttackScriptExecutor(
                 logger,
                 messagesToDisplay,
-                new ConnectionFactory(
+                new ConnectionFactoryFactory(
                         logger,
                         webSockets,
-                        pendingMessages
-                )
+                        pendingMessages,
+                        attackId::get
+                ),
+                attackId
         );
 
         WebSocketMessageTableModel webSocketMessageTableModel = new WebSocketMessageTableModel();
@@ -62,10 +80,10 @@ public class WebSocketFrameFactory
                 pendingMessages,
                 messagesToDisplay,
                 webSocketMessageTableModel::add,
-                scriptExecutor
+                scriptExecutor,
+                attackStatus,
+                isAttackRunning
         );
-
-        attackManagerReference.set(attackManager);
 
         WebSocketFrame webSocketFrame = new WebSocketFrame(
                 logger,

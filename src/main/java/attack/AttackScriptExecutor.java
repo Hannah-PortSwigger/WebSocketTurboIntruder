@@ -8,10 +8,11 @@ import data.MessagesToDisplay;
 import data.WebSocketConnectionMessage;
 import interpreter.Interpreter;
 import logger.Logger;
-import python.ConnectionFactory;
+import python.ConnectionFactoryFactory;
 import python.ResultsTable;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
 
@@ -19,21 +20,25 @@ public class AttackScriptExecutor
 {
     private final Logger logger;
     private final MessagesToDisplay messagesToDisplay;
-    private final ConnectionFactory connectionFactory;
+    private final ConnectionFactoryFactory connectionFactoryFactory;
+    private final AtomicInteger attackId;
 
     private Interpreter interpreter;
 
-    public AttackScriptExecutor(Logger logger, MessagesToDisplay messagesToDisplay, ConnectionFactory connectionFactory)
+    public AttackScriptExecutor(Logger logger, MessagesToDisplay messagesToDisplay, ConnectionFactoryFactory connectionFactoryFactory, AtomicInteger attackId)
     {
         this.logger = logger;
         this.messagesToDisplay = messagesToDisplay;
-        this.connectionFactory = connectionFactory;
+        this.connectionFactoryFactory = connectionFactoryFactory;
+        this.attackId = attackId;
     }
 
     public void startAttack(String message, HttpRequest upgradeRequest, String editorCodeString)
     {
+        attackId.incrementAndGet();
+
         interpreter = new Interpreter(logger);
-        interpreter.setVariable("websocket_connection", connectionFactory);
+        interpreter.setVariable("websocket_connection", connectionFactoryFactory.create());
         interpreter.setVariable("results_table", new ResultsTable(messagesToDisplay));
 
         interpreter.setVariable("message", message);

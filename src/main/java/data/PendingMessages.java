@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class PendingMessages implements Consumer<WebSocketConnectionMessage>, Supplier<WebSocketConnectionMessage> // TODO
+public class PendingMessages implements Consumer<AttackIdAndWebSocketConnectionMessage>, Supplier<WebSocketConnectionMessage> // TODO
 {
     private final BlockingQueue<WebSocketConnectionMessage> unprocessedMessageQueue;
     private final Logger logger;
@@ -21,13 +21,12 @@ public class PendingMessages implements Consumer<WebSocketConnectionMessage>, Su
         this.unprocessedMessageQueue = new LinkedBlockingQueue<>();
     }
 
-
     @Override
-    public void accept(WebSocketConnectionMessage connectionMessage)
+    public void accept(AttackIdAndWebSocketConnectionMessage attackIdAndWebSocketConnectionMessage)
     {
-        if (attackStatus.isRunning())
+        if (attackStatus.isRunning() && attackStatus.isCurrentAttackId(attackIdAndWebSocketConnectionMessage.attackId()))
         {
-            unprocessedMessageQueue.add(connectionMessage);
+            unprocessedMessageQueue.add(attackIdAndWebSocketConnectionMessage.webSocketConnectionMessage());
         }
     }
 

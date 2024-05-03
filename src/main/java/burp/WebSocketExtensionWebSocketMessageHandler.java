@@ -4,6 +4,7 @@ import burp.api.montoya.websocket.BinaryMessage;
 import burp.api.montoya.websocket.TextMessage;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketMessageHandler;
 import connection.WebSocketConnection;
+import data.AttackIdAndWebSocketConnectionMessage;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
 
@@ -12,17 +13,20 @@ import java.util.function.Consumer;
 public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSocketMessageHandler
 {
     private final Logger logger;
-    private final Consumer<WebSocketConnectionMessage> pendingMessagesConsumer;
+    private final Consumer<AttackIdAndWebSocketConnectionMessage> pendingMessagesConsumer;
+    private final int attackId;
     private final WebSocketConnection connection;
 
     public WebSocketExtensionWebSocketMessageHandler(
             Logger logger,
-            Consumer<WebSocketConnectionMessage> pendingMessagesConsumer,
+            Consumer<AttackIdAndWebSocketConnectionMessage> pendingMessagesConsumer,
+            int attackId,
             WebSocketConnection connection
-    )
+    ) //TODO can we hide the attack ID from this class
     {
         this.logger = logger;
         this.pendingMessagesConsumer = pendingMessagesConsumer;
+        this.attackId = attackId;
         this.connection = connection;
     }
 
@@ -30,10 +34,13 @@ public class WebSocketExtensionWebSocketMessageHandler implements ExtensionWebSo
     public void textMessageReceived(TextMessage textMessage)
     {
         pendingMessagesConsumer.accept(
-                new WebSocketConnectionMessage(
-                        textMessage.payload(),
-                        textMessage.direction(),
-                        connection
+                new AttackIdAndWebSocketConnectionMessage(
+                        attackId,
+                        new WebSocketConnectionMessage(
+                                textMessage.payload(),
+                                textMessage.direction(),
+                                connection
+                        )
                 )
         );
     }
