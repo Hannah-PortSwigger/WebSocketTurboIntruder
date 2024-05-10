@@ -51,6 +51,9 @@ public class AttackScriptExecutor
         catch (Exception e)
         {
             logger.logError("Jython code error. Please review.\r\n" + e);
+
+            interpreter.close();
+
             throw new IllegalArgumentException(e);
         }
 

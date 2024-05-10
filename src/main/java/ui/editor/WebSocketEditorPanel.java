@@ -229,13 +229,18 @@ public class WebSocketEditorPanel extends JPanel
             try
             {
                 attackStarter.startAttack(attackDetails);
+
+                panelSwitcher.showAttackPanel();
             }
             catch (Exception e)
             {
-                showMessageDialog(this, "Jython code error. Please review.\n" + e, "Error", ERROR_MESSAGE);
+                showMessageDialog(
+                        this,
+                        "Jython code error. Please review.\n" + e.getMessage(),
+                        "Error",
+                        ERROR_MESSAGE
+                );
             }
-
-            panelSwitcher.showAttackPanel();
         });
 
         return attackButton;
