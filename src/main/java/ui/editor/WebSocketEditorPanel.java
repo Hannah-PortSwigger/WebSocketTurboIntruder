@@ -1,13 +1,12 @@
 package ui.editor;
 
-import attack.AttackScriptExecutor;
 import attack.AttackStarter;
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import config.FileLocationConfiguration;
+import data.AttackDetails;
 import data.InitialWebSocketMessage;
 import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -35,10 +34,10 @@ public class WebSocketEditorPanel extends JPanel
     private final UserInterface userInterface;
     private final FileLocationConfiguration fileLocationConfiguration;
     private final AttackStarter attackStarter;
-    private final AttackScriptExecutor scriptExecutor;
     private final InitialWebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
     private final ScriptLoaderFacade scriptLoader;
+
     private JComboBox<Script> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
     private HttpRequestEditor upgradeHttpMessageEditor;
@@ -49,7 +48,6 @@ public class WebSocketEditorPanel extends JPanel
             UserInterface userInterface,
             FileLocationConfiguration fileLocationConfiguration,
             AttackStarter attackStarter,
-            AttackScriptExecutor scriptExecutor,
             InitialWebSocketMessage originalWebSocketMessage,
             PanelSwitcher panelSwitcher
     )
@@ -58,7 +56,6 @@ public class WebSocketEditorPanel extends JPanel
         this.userInterface = userInterface;
         this.fileLocationConfiguration = fileLocationConfiguration;
         this.attackStarter = attackStarter;
-        this.scriptExecutor = scriptExecutor;
         this.originalWebSocketMessage = originalWebSocketMessage;
         this.panelSwitcher = panelSwitcher;
         this.scriptLoader = new ScriptLoaderFacade(fileLocationConfiguration);
@@ -222,16 +219,16 @@ public class WebSocketEditorPanel extends JPanel
     {
         JButton attackButton = new JButton("Attack");
         attackButton.addActionListener(l -> {
-            String payload = webSocketsMessageEditor.getContents().toString();
-            HttpRequest upgradeRequest = upgradeHttpMessageEditor.getRequest();
-
-            String script = scriptTextComponent.getText();
-
-            attackStarter.startAttack((int) numberOfThreadsSpinner.getValue());
+            AttackDetails attackDetails = new AttackDetails(
+                    (int) numberOfThreadsSpinner.getValue(),
+                    webSocketsMessageEditor.getContents().toString(),
+                    upgradeHttpMessageEditor.getRequest(),
+                    scriptTextComponent.getText()
+            );
 
             try
             {
-                scriptExecutor.startAttack(payload, upgradeRequest, script);
+                attackStarter.startAttack(attackDetails);
             }
             catch (Exception e)
             {

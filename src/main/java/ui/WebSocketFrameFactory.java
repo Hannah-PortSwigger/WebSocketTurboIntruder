@@ -90,7 +90,6 @@ public class WebSocketFrameFactory
                 userInterface,
                 fileLocationConfiguration,
                 webSocketMessage,
-                scriptExecutor,
                 webSocketMessageTableModel,
                 attackManager
         );

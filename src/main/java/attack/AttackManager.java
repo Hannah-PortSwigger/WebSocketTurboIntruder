@@ -1,5 +1,6 @@
 package attack;
 
+import data.AttackDetails;
 import data.ConnectionMessage;
 import data.MessagesToDisplay;
 import data.PendingMessages;
@@ -12,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static logger.LoggerLevel.DEBUG;
 
 public class AttackManager implements AttackStarter, AttackStopper
@@ -47,11 +49,11 @@ public class AttackManager implements AttackStarter, AttackStopper
     }
 
     @Override
-    public void startAttack(int numberOfThreads)
+    public void startAttack(AttackDetails attackDetails)
     {
         isRunning.set(true);
 
-        sendMessageExecutorService = Executors.newFixedThreadPool(numberOfThreads);
+        sendMessageExecutorService = newFixedThreadPool(attackDetails.numberOfThreads());
         sendMessageExecutorService.execute(
                 new SendMessageQueueConsumer(
                         scriptExecutor::processMessage,
@@ -60,7 +62,7 @@ public class AttackManager implements AttackStarter, AttackStopper
                 )
         );
 
-        logger.logOutput(DEBUG, "Number of threads attack started with: " + numberOfThreads);
+        logger.logOutput(DEBUG, "Number of threads attack started with: " + attackDetails.numberOfThreads());
 
         tableExecutorService = Executors.newSingleThreadExecutor();
         tableExecutorService.execute(
@@ -72,6 +74,8 @@ public class AttackManager implements AttackStarter, AttackStopper
         );
 
         logger.logOutput(DEBUG, "Table thread started.");
+
+        scriptExecutor.startAttack(attackDetails.payload(), attackDetails.upgradeRequest(), attackDetails.script());
     }
 
     public boolean isAttackRunning()

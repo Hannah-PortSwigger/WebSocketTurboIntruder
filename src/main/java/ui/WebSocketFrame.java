@@ -1,7 +1,6 @@
 package ui;
 
 import attack.AttackManager;
-import attack.AttackScriptExecutor;
 import burp.api.montoya.ui.UserInterface;
 import config.FileLocationConfiguration;
 import data.InitialWebSocketMessage;
@@ -26,7 +25,6 @@ public class WebSocketFrame extends JFrame
             UserInterface userInterface,
             FileLocationConfiguration fileLocationConfiguration,
             InitialWebSocketMessage webSocketMessage,
-            AttackScriptExecutor scriptExecutor,
             WebSocketMessageTableModel webSocketMessageTableModel,
             AttackManager attackManager
     )
@@ -65,7 +63,6 @@ public class WebSocketFrame extends JFrame
                         userInterface,
                         fileLocationConfiguration,
                         attackManager,
-                        scriptExecutor,
                         webSocketMessage,
                         panelSwitcher
                 ),
