@@ -11,6 +11,7 @@ import queue.TableBlockingQueueConsumer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -25,6 +26,7 @@ public class AttackManager implements AttackStarter, AttackStopper
     private final AttackScriptExecutor scriptExecutor;
     private final AttackStatus attackStatus;
     private final AtomicBoolean isRunning;
+    private final AtomicInteger attackId;
 
     private ExecutorService sendMessageExecutorService;
     private ExecutorService tableExecutorService;
@@ -36,8 +38,8 @@ public class AttackManager implements AttackStarter, AttackStopper
             Consumer<ConnectionMessage> messageConsumer,
             AttackScriptExecutor scriptExecutor,
             AttackStatus attackStatus,
-            AtomicBoolean isAttackRunning
-    )
+            AtomicBoolean isAttackRunning,
+            AtomicInteger attackId)
     {
         this.logger = logger;
         this.pendingMessages = pendingMessages;
@@ -46,12 +48,14 @@ public class AttackManager implements AttackStarter, AttackStopper
         this.scriptExecutor = scriptExecutor;
         this.attackStatus = attackStatus;
         this.isRunning = isAttackRunning;
+        this.attackId = attackId;
     }
 
     @Override
     public void startAttack(AttackDetails attackDetails)
     {
         isRunning.set(true);
+        attackId.incrementAndGet();
 
         sendMessageExecutorService = newFixedThreadPool(attackDetails.numberOfThreads());
         sendMessageExecutorService.execute(

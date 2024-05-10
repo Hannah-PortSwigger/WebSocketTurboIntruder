@@ -69,8 +69,7 @@ public class WebSocketFrameFactory
                         webSockets,
                         pendingMessages,
                         attackId::get
-                ),
-                attackId
+                )
         );
 
         WebSocketMessageTableModel webSocketMessageTableModel = new WebSocketMessageTableModel();
@@ -82,7 +81,8 @@ public class WebSocketFrameFactory
                 webSocketMessageTableModel::add,
                 scriptExecutor,
                 attackStatus,
-                isAttackRunning
+                isAttackRunning,
+                attackId
         );
 
         WebSocketFrame webSocketFrame = new WebSocketFrame(
