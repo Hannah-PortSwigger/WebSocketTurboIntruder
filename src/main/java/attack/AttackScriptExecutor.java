@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 public class AttackScriptExecutor
 {
@@ -25,7 +26,12 @@ public class AttackScriptExecutor
 
     private Interpreter interpreter;
 
-    public AttackScriptExecutor(Logger logger, MessagesToDisplay messagesToDisplay, ConnectionFactoryFactory connectionFactoryFactory, AtomicInteger attackId)
+    public AttackScriptExecutor(
+            Logger logger,
+            MessagesToDisplay messagesToDisplay,
+            ConnectionFactoryFactory connectionFactoryFactory,
+            AtomicInteger attackId
+    )
     {
         this.logger = logger;
         this.messagesToDisplay = messagesToDisplay;
@@ -44,8 +50,17 @@ public class AttackScriptExecutor
         interpreter.setVariable("message", message);
         interpreter.setVariable("upgrade_request", upgradeRequest);
 
-        interpreter.execute(editorCodeString);
-        interpreter.execute("queue_websockets(upgrade_request, message)");
+        try
+        {
+            interpreter.execute(editorCodeString);
+        }
+        catch (Exception e)
+        {
+            logger.logError("Jython code error. Please review.\r\n" + e);
+            throw new IllegalArgumentException(e);
+        }
+
+        newSingleThreadExecutor().submit(() -> interpreter.execute("queue_websockets(upgrade_request, message)"));
     }
 
     public void processMessage(WebSocketConnectionMessage webSocketConnectionMessage)

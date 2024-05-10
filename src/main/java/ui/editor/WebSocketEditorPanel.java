@@ -24,7 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
@@ -228,18 +229,14 @@ public class WebSocketEditorPanel extends JPanel
 
             attackStarter.startAttack((int) numberOfThreadsSpinner.getValue());
 
-            newSingleThreadExecutor().submit(() ->
+            try
             {
-                try
-                {
-                    scriptExecutor.startAttack(payload, upgradeRequest, script);
-                }
-                catch (Exception e)
-                {
-                    JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
-                    logger.logError("Jython code error. Please review.\r\n" + e);
-                }
-            });
+                scriptExecutor.startAttack(payload, upgradeRequest, script);
+            }
+            catch (Exception e)
+            {
+                showMessageDialog(this, "Jython code error. Please review.\n" + e, "Error", ERROR_MESSAGE);
+            }
 
             panelSwitcher.showAttackPanel();
         });
