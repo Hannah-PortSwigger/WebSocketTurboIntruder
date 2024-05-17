@@ -1,6 +1,7 @@
 package ui;
 
 import attack.AttackManager;
+import attack.AttackStatus;
 import burp.api.montoya.ui.UserInterface;
 import config.FileLocationConfiguration;
 import data.InitialWebSocketMessage;
@@ -26,8 +27,8 @@ public class WebSocketFrame extends JFrame
             FileLocationConfiguration fileLocationConfiguration,
             InitialWebSocketMessage webSocketMessage,
             WebSocketMessageTableModel webSocketMessageTableModel,
-            AttackManager attackManager
-    )
+            AttackManager attackManager,
+            AttackStatus attackStatus)
     {
         String titleString = EXTENSION_NAME + " - " + webSocketMessage.upgradeRequest().url();
 
@@ -73,6 +74,7 @@ public class WebSocketFrame extends JFrame
                 new WebSocketAttackPanel(
                         userInterface,
                         attackManager,
+                        attackStatus,
                         panelSwitcher,
                         webSocketMessageTableModel
                 ),

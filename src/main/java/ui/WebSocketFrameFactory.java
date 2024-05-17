@@ -91,7 +91,8 @@ public class WebSocketFrameFactory
                 fileLocationConfiguration,
                 webSocketMessage,
                 webSocketMessageTableModel,
-                attackManager
+                attackManager,
+                attackStatus
         );
 
         webSocketFrame.addWindowListener(

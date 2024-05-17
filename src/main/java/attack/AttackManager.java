@@ -82,11 +82,6 @@ public class AttackManager implements AttackStarter, AttackStopper
         scriptExecutor.startAttack(attackDetails.payload(), attackDetails.upgradeRequest(), attackDetails.script());
     }
 
-    public boolean isAttackRunning()
-    {
-        return attackStatus.isRunning();
-    }
-
     @Override
     public void stopAttack()
     {
