@@ -2,7 +2,7 @@ package ui;
 
 import attack.AttackManager;
 import attack.AttackScriptExecutor;
-import attack.AttackStatus;
+import attack.AttackState;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.websocket.WebSockets;
 import config.FileLocationConfiguration;
@@ -15,8 +15,6 @@ import ui.attack.table.WebSocketMessageTableModel;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebSocketFrameFactory
 {
@@ -40,26 +38,10 @@ public class WebSocketFrameFactory
 
     public WebSocketFrame from(InitialWebSocketMessage webSocketMessage)
     {
-        AtomicBoolean isAttackRunning = new AtomicBoolean();
-        AtomicInteger attackId = new AtomicInteger();
+        AttackState attackState = new AttackState();
 
-        AttackStatus attackStatus = new AttackStatus() //TODO object?
-        {
-            @Override
-            public boolean isRunning()
-            {
-                return isAttackRunning.get();
-            }
-
-            @Override
-            public boolean isCurrentAttackId(int id)
-            {
-                return attackId.get() == id;
-            }
-        };
-
-        MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackStatus);
-        PendingMessages pendingMessages = new PendingMessages(logger, attackStatus);
+        MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackState);
+        PendingMessages pendingMessages = new PendingMessages(logger, attackState);
 
         AttackScriptExecutor scriptExecutor = new AttackScriptExecutor(
                 logger,
@@ -68,7 +50,7 @@ public class WebSocketFrameFactory
                         logger,
                         webSockets,
                         pendingMessages,
-                        attackId::get
+                        attackState::currentAttackId
                 )
         );
 
@@ -80,9 +62,7 @@ public class WebSocketFrameFactory
                 messagesToDisplay,
                 webSocketMessageTableModel::add,
                 scriptExecutor,
-                attackStatus,
-                isAttackRunning,
-                attackId
+                attackState
         );
 
         WebSocketFrame webSocketFrame = new WebSocketFrame(
@@ -92,7 +72,7 @@ public class WebSocketFrameFactory
                 webSocketMessage,
                 webSocketMessageTableModel,
                 attackManager,
-                attackStatus
+                attackState
         );
 
         webSocketFrame.addWindowListener(

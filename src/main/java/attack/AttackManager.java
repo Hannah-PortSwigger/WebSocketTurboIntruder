@@ -10,8 +10,6 @@ import queue.TableBlockingQueueConsumer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -24,9 +22,7 @@ public class AttackManager implements AttackStarter, AttackStopper
     private final MessagesToDisplay messagesToDisplay;
     private final Consumer<ConnectionMessage> connectionMessageConsumer;
     private final AttackScriptExecutor scriptExecutor;
-    private final AttackStatus attackStatus;
-    private final AtomicBoolean isRunning;
-    private final AtomicInteger attackId;
+    private final AttackState attackState;
 
     private ExecutorService sendMessageExecutorService;
     private ExecutorService tableExecutorService;
@@ -37,31 +33,27 @@ public class AttackManager implements AttackStarter, AttackStopper
             MessagesToDisplay messagesToDisplay,
             Consumer<ConnectionMessage> messageConsumer,
             AttackScriptExecutor scriptExecutor,
-            AttackStatus attackStatus,
-            AtomicBoolean isAttackRunning,
-            AtomicInteger attackId)
+            AttackState attackState
+    )
     {
         this.logger = logger;
         this.pendingMessages = pendingMessages;
         this.messagesToDisplay = messagesToDisplay;
         this.connectionMessageConsumer = messageConsumer;
         this.scriptExecutor = scriptExecutor;
-        this.attackStatus = attackStatus;
-        this.isRunning = isAttackRunning;
-        this.attackId = attackId;
+        this.attackState = attackState;
     }
 
     @Override
     public void startAttack(AttackDetails attackDetails)
     {
-        isRunning.set(true);
-        attackId.incrementAndGet();
+        attackState.newAttack();
 
         sendMessageExecutorService = newFixedThreadPool(attackDetails.numberOfThreads());
         sendMessageExecutorService.execute(
                 new SendMessageQueueConsumer(
                         scriptExecutor::processMessage,
-                        attackStatus,
+                        attackState,
                         pendingMessages
                 )
         );
@@ -72,7 +64,7 @@ public class AttackManager implements AttackStarter, AttackStopper
         tableExecutorService.execute(
                 new TableBlockingQueueConsumer(
                         messagesToDisplay,
-                        attackStatus,
+                        attackState,
                         connectionMessageConsumer
                 )
         );
@@ -85,7 +77,7 @@ public class AttackManager implements AttackStarter, AttackStopper
     @Override
     public void stopAttack()
     {
-        isRunning.set(false);
+        attackState.endAttack();
 
         scriptExecutor.stopAttack();
 
