@@ -1,7 +1,6 @@
 package ui.editor;
 
 import attack.AttackStarter;
-import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
@@ -10,7 +9,6 @@ import data.AttackDetails;
 import data.InitialWebSocketMessage;
 import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import script.Script;
 import script.ScriptLoaderFacade;
@@ -20,7 +18,6 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
@@ -30,13 +27,13 @@ import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
 public class WebSocketEditorPanel extends JPanel
 {
-    private final Logger logger;
     private final UserInterface userInterface;
     private final FileLocationConfiguration fileLocationConfiguration;
     private final AttackStarter attackStarter;
     private final InitialWebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
     private final ScriptLoaderFacade scriptLoader;
+    private final ThemeAwareRSTAFactory rstaFactory;
 
     private JComboBox<Script> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
@@ -52,13 +49,13 @@ public class WebSocketEditorPanel extends JPanel
             PanelSwitcher panelSwitcher
     )
     {
-        this.logger = logger;
         this.userInterface = userInterface;
         this.fileLocationConfiguration = fileLocationConfiguration;
         this.attackStarter = attackStarter;
         this.originalWebSocketMessage = originalWebSocketMessage;
         this.panelSwitcher = panelSwitcher;
         this.scriptLoader = new ScriptLoaderFacade(fileLocationConfiguration);
+        this.rstaFactory = new ThemeAwareRSTAFactory(userInterface, logger);
 
         this.setLayout(new BorderLayout());
 
@@ -98,7 +95,7 @@ public class WebSocketEditorPanel extends JPanel
 
         panel.add(getButtonPanel(), BorderLayout.NORTH);
 
-        RSyntaxTextArea rSyntaxTextArea = getRSyntaxTextArea();
+        RSyntaxTextArea rSyntaxTextArea = rstaFactory.build();
         RTextScrollPane scrollableCodeEditor = new RTextScrollPane(rSyntaxTextArea);
 
         Script script = scriptComboBox.getItemAt(scriptComboBox.getSelectedIndex());
@@ -177,42 +174,6 @@ public class WebSocketEditorPanel extends JPanel
         });
 
         return selectScriptsDirectoryButton;
-    }
-
-    private RSyntaxTextArea getRSyntaxTextArea()
-    {
-        javax.swing.text.JTextComponent.removeKeymap("RTextAreaKeymap");
-        UIManager.put("RTextAreaUI.inputMap", null);
-        UIManager.put("RTextAreaUI.actionMap", null);
-        UIManager.put("RSyntaxTextAreaUI.inputMap", null);
-        UIManager.put("RSyntaxTextAreaUI.actionMap", null);
-
-        RSyntaxTextArea codeEditor = new RSyntaxTextArea(20, 60);
-
-        codeEditor.setEditable(true);
-        codeEditor.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
-        codeEditor.setAntiAliasingEnabled(true);
-        codeEditor.setAutoIndentEnabled(true);
-        codeEditor.setPaintTabLines(true);
-        codeEditor.setTabSize(4);
-        codeEditor.setTabsEmulated(true);
-        codeEditor.setEOLMarkersVisible(false);
-        codeEditor.setWhitespaceVisible(false);
-
-        if (userInterface.currentTheme() == Theme.DARK)
-        {
-            try
-            {
-                org.fife.ui.rsyntaxtextarea.Theme rSyntaxTextAreaTheme = org.fife.ui.rsyntaxtextarea.Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml"));
-                rSyntaxTextAreaTheme.apply(codeEditor);
-            }
-            catch (IOException e)
-            {
-                logger.logError("Unable to apply dark theme.");
-            }
-        }
-
-        return codeEditor;
     }
 
     private JButton getAttackButton(JTextComponent scriptTextComponent)
