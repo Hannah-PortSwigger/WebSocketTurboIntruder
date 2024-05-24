@@ -1,6 +1,7 @@
 package ui.attack;
 
 import attack.AttackManager;
+import attack.AttackStatus;
 import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
@@ -16,12 +17,14 @@ public class WebSocketAttackPanel extends JPanel
 {
     private final UserInterface userInterface;
     private final AttackManager attackManager;
+    private final AttackStatus attackStatus;
     private final PanelSwitcher panelSwitcher;
     private final WebSocketMessageTableModel tableModel;
 
     public WebSocketAttackPanel(
             UserInterface userInterface,
             AttackManager attackManager,
+            AttackStatus attackStatus,
             PanelSwitcher panelSwitcher,
             WebSocketMessageTableModel tableModel
     )
@@ -30,6 +33,7 @@ public class WebSocketAttackPanel extends JPanel
 
         this.userInterface = userInterface;
         this.attackManager = attackManager;
+        this.attackStatus = attackStatus;
         this.panelSwitcher = panelSwitcher;
         this.tableModel = tableModel;
 
@@ -75,7 +79,7 @@ public class WebSocketAttackPanel extends JPanel
     {
         JButton haltConfigureButton = new JButton("Halt");
         haltConfigureButton.addActionListener(l -> {
-            if (attackManager.isRunning())
+            if (attackStatus.isRunning())
             {
                 attackManager.stopAttack();
                 haltConfigureButton.setText("Configure");

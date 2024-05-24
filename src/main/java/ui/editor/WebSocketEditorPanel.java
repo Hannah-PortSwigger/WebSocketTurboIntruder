@@ -1,14 +1,13 @@
 package ui.editor;
 
-import attack.AttackScriptExecutor;
 import attack.AttackStarter;
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.Theme;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import config.FileLocationConfiguration;
+import data.AttackDetails;
+import data.InitialWebSocketMessage;
 import logger.Logger;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -24,7 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
@@ -34,10 +34,10 @@ public class WebSocketEditorPanel extends JPanel
     private final UserInterface userInterface;
     private final FileLocationConfiguration fileLocationConfiguration;
     private final AttackStarter attackStarter;
-    private final AttackScriptExecutor scriptExecutor;
-    private final WebSocketMessage originalWebSocketMessage;
+    private final InitialWebSocketMessage originalWebSocketMessage;
     private final PanelSwitcher panelSwitcher;
     private final ScriptLoaderFacade scriptLoader;
+
     private JComboBox<Script> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
     private HttpRequestEditor upgradeHttpMessageEditor;
@@ -48,8 +48,7 @@ public class WebSocketEditorPanel extends JPanel
             UserInterface userInterface,
             FileLocationConfiguration fileLocationConfiguration,
             AttackStarter attackStarter,
-            AttackScriptExecutor scriptExecutor,
-            WebSocketMessage originalWebSocketMessage,
+            InitialWebSocketMessage originalWebSocketMessage,
             PanelSwitcher panelSwitcher
     )
     {
@@ -57,7 +56,6 @@ public class WebSocketEditorPanel extends JPanel
         this.userInterface = userInterface;
         this.fileLocationConfiguration = fileLocationConfiguration;
         this.attackStarter = attackStarter;
-        this.scriptExecutor = scriptExecutor;
         this.originalWebSocketMessage = originalWebSocketMessage;
         this.panelSwitcher = panelSwitcher;
         this.scriptLoader = new ScriptLoaderFacade(fileLocationConfiguration);
@@ -81,7 +79,7 @@ public class WebSocketEditorPanel extends JPanel
     private Component getWebSocketMessageEditor()
     {
         webSocketsMessageEditor = userInterface.createWebSocketMessageEditor();
-        webSocketsMessageEditor.setContents(originalWebSocketMessage.payload());
+        webSocketsMessageEditor.setContents(originalWebSocketMessage.message());
 
         return webSocketsMessageEditor.uiComponent();
     }
@@ -221,27 +219,28 @@ public class WebSocketEditorPanel extends JPanel
     {
         JButton attackButton = new JButton("Attack");
         attackButton.addActionListener(l -> {
-            String payload = webSocketsMessageEditor.getContents().toString();
-            HttpRequest upgradeRequest = upgradeHttpMessageEditor.getRequest();
+            AttackDetails attackDetails = new AttackDetails(
+                    (int) numberOfThreadsSpinner.getValue(),
+                    webSocketsMessageEditor.getContents().toString(),
+                    upgradeHttpMessageEditor.getRequest(),
+                    scriptTextComponent.getText()
+            );
 
-            String script = scriptTextComponent.getText();
-
-            attackStarter.startAttack((int) numberOfThreadsSpinner.getValue());
-
-            newSingleThreadExecutor().submit(() ->
+            try
             {
-                try
-                {
-                    scriptExecutor.startAttack(payload, upgradeRequest, script);
-                }
-                catch (Exception e)
-                {
-                    JOptionPane.showMessageDialog(this, "Jython code error. Please review.\r\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
-                    logger.logError("Jython code error. Please review.\r\n" + e);
-                }
-            });
+                attackStarter.startAttack(attackDetails);
 
-            panelSwitcher.showAttackPanel();
+                panelSwitcher.showAttackPanel();
+            }
+            catch (Exception e)
+            {
+                showMessageDialog(
+                        this,
+                        "Jython code error. Please review.\n" + e.getMessage(),
+                        "Error",
+                        ERROR_MESSAGE
+                );
+            }
         });
 
         return attackButton;

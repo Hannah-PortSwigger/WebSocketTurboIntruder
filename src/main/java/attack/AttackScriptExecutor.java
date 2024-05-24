@@ -8,31 +8,56 @@ import data.MessagesToDisplay;
 import data.WebSocketConnectionMessage;
 import interpreter.Interpreter;
 import logger.Logger;
-import python.ConnectionFactory;
+import python.ConnectionFactoryFactory;
 import python.ResultsTable;
 
 import java.time.LocalDateTime;
 
 import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 public class AttackScriptExecutor
 {
-    private final Interpreter interpreter;
+    private final Logger logger;
+    private final MessagesToDisplay messagesToDisplay;
+    private final ConnectionFactoryFactory connectionFactoryFactory;
 
-    public AttackScriptExecutor(Logger logger, MessagesToDisplay messagesToDisplay, ConnectionFactory connectionFactory)
+    private Interpreter interpreter;
+
+    public AttackScriptExecutor(
+            Logger logger,
+            MessagesToDisplay messagesToDisplay,
+            ConnectionFactoryFactory connectionFactoryFactory
+    )
     {
-        interpreter = new Interpreter(logger);
-        interpreter.setVariable("websocket_connection", connectionFactory);
-        interpreter.setVariable("results_table", new ResultsTable(messagesToDisplay));
+        this.logger = logger;
+        this.messagesToDisplay = messagesToDisplay;
+        this.connectionFactoryFactory = connectionFactoryFactory;
     }
 
     public void startAttack(String message, HttpRequest upgradeRequest, String editorCodeString)
     {
+        interpreter = new Interpreter(logger);
+        interpreter.setVariable("websocket_connection", connectionFactoryFactory.create());
+        interpreter.setVariable("results_table", new ResultsTable(messagesToDisplay));
+
         interpreter.setVariable("message", message);
         interpreter.setVariable("upgrade_request", upgradeRequest);
 
-        interpreter.execute(editorCodeString);
-        interpreter.execute("queue_websockets(upgrade_request, message)");
+        try
+        {
+            interpreter.execute(editorCodeString);
+        }
+        catch (Exception e)
+        {
+            logger.logError("Jython code error. Please review.\r\n" + e);
+
+            interpreter.close();
+
+            throw new IllegalArgumentException(e);
+        }
+
+        newSingleThreadExecutor().submit(() -> interpreter.execute("queue_websockets(upgrade_request, message)"));
     }
 
     public void processMessage(WebSocketConnectionMessage webSocketConnectionMessage)
@@ -45,6 +70,11 @@ public class AttackScriptExecutor
                 : "handle_incoming_message";
 
         interpreter.execute(String.format("%s(%s)", callbackMethod, messageParameterName));
+    }
+
+    public void stopAttack()
+    {
+        interpreter.close();
     }
 
     private static class DecoratedConnectionMessage implements ConnectionMessage

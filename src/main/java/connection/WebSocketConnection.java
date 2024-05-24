@@ -5,6 +5,7 @@ import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.websocket.WebSockets;
 import burp.api.montoya.websocket.extension.ExtensionWebSocket;
 import burp.api.montoya.websocket.extension.ExtensionWebSocketCreation;
+import data.AttackIdAndWebSocketConnectionMessage;
 import data.PendingMessages;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
@@ -17,6 +18,7 @@ public class WebSocketConnection implements Connection
     private final Logger logger;
     private final WebSockets webSockets;
     private final PendingMessages pendingMessages;
+    private final int attackId;
     private final HttpRequest upgradeRequest;
     private final ExtensionWebSocket extensionWebSocket;
 
@@ -24,12 +26,14 @@ public class WebSocketConnection implements Connection
             Logger logger,
             WebSockets webSockets,
             PendingMessages pendingMessages,
+            int attackId,
             HttpRequest upgradeRequest
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
         this.pendingMessages = pendingMessages;
+        this.attackId = attackId;
         this.upgradeRequest = upgradeRequest;
 
         extensionWebSocket = createExtensionWebSocket(upgradeRequest);
@@ -38,13 +42,13 @@ public class WebSocketConnection implements Connection
     @Override
     public void queue(String payload)
     {
-        pendingMessages.accept(new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, this));
+        pendingMessages.accept(new AttackIdAndWebSocketConnectionMessage(attackId, new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, this)));
     }
 
     @Override
     public void queue(String payload, String comment)
     {
-        pendingMessages.accept(new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, comment, this));
+        pendingMessages.accept(new AttackIdAndWebSocketConnectionMessage(attackId, new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, comment, this)));
     }
 
     @Override
@@ -73,6 +77,7 @@ public class WebSocketConnection implements Connection
                     new WebSocketExtensionWebSocketMessageHandler(
                             logger,
                             pendingMessages,
+                            attackId,
                             this // TODO
                     )
             );

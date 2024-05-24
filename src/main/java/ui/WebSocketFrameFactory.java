@@ -2,20 +2,19 @@ package ui;
 
 import attack.AttackManager;
 import attack.AttackScriptExecutor;
-import attack.AttackStatus;
+import attack.AttackState;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.contextmenu.WebSocketMessage;
 import burp.api.montoya.websocket.WebSockets;
 import config.FileLocationConfiguration;
+import data.InitialWebSocketMessage;
 import data.MessagesToDisplay;
 import data.PendingMessages;
 import logger.Logger;
-import python.ConnectionFactory;
+import python.ConnectionFactoryFactory;
 import ui.attack.table.WebSocketMessageTableModel;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class WebSocketFrameFactory
 {
@@ -37,21 +36,21 @@ public class WebSocketFrameFactory
         this.webSockets = webSockets;
     }
 
-    public WebSocketFrame from(WebSocketMessage webSocketMessage)
+    public WebSocketFrame from(InitialWebSocketMessage webSocketMessage)
     {
-        AtomicReference<AttackManager> attackManagerReference = new AtomicReference<>();
-        AttackStatus attackStatus = () -> attackManagerReference.get().isRunning();
+        AttackState attackState = new AttackState();
 
-        MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackStatus);
-        PendingMessages pendingMessages = new PendingMessages(logger, attackStatus);
+        MessagesToDisplay messagesToDisplay = new MessagesToDisplay(logger, attackState);
+        PendingMessages pendingMessages = new PendingMessages(logger, attackState);
 
         AttackScriptExecutor scriptExecutor = new AttackScriptExecutor(
                 logger,
                 messagesToDisplay,
-                new ConnectionFactory(
+                new ConnectionFactoryFactory(
                         logger,
                         webSockets,
-                        pendingMessages
+                        pendingMessages,
+                        attackState::currentAttackId
                 )
         );
 
@@ -62,19 +61,18 @@ public class WebSocketFrameFactory
                 pendingMessages,
                 messagesToDisplay,
                 webSocketMessageTableModel::add,
-                scriptExecutor::processMessage
+                scriptExecutor,
+                attackState
         );
-
-        attackManagerReference.set(attackManager);
 
         WebSocketFrame webSocketFrame = new WebSocketFrame(
                 logger,
                 userInterface,
                 fileLocationConfiguration,
                 webSocketMessage,
-                scriptExecutor,
                 webSocketMessageTableModel,
-                attackManager
+                attackManager,
+                attackState
         );
 
         webSocketFrame.addWindowListener(

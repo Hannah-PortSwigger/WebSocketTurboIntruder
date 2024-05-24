@@ -1,35 +1,33 @@
 package python;
 
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.websocket.WebSockets;
-import connection.Connection;
-import connection.WebSocketConnection;
 import data.PendingMessages;
 import logger.Logger;
 
-public class ConnectionFactory
+import java.util.function.Supplier;
+
+public class ConnectionFactoryFactory
 {
     private final Logger logger;
     private final WebSockets webSockets;
     private final PendingMessages pendingMessages;
-    private final int attackId;
+    private final Supplier<Integer> attackIdSupplier;
 
-    public ConnectionFactory(
+    public ConnectionFactoryFactory(
             Logger logger,
             WebSockets webSockets,
             PendingMessages pendingMessages,
-            int attackId
+            Supplier<Integer> attackIdSupplier
     )
     {
         this.logger = logger;
         this.webSockets = webSockets;
         this.pendingMessages = pendingMessages;
-        this.attackId = attackId;
+        this.attackIdSupplier = attackIdSupplier;
     }
 
-    @SuppressWarnings("unused") // called by Python
-    public Connection create(HttpRequest upgradeRequest)
+    public ConnectionFactory create()
     {
-        return new WebSocketConnection(logger, webSockets, pendingMessages, attackId, upgradeRequest);
+        return new ConnectionFactory(logger, webSockets, pendingMessages, attackIdSupplier.get());
     }
 }
