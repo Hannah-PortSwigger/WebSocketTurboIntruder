@@ -18,8 +18,9 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
-import java.util.List;
 
+import static javax.swing.JFileChooser.APPROVE_OPTION;
+import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
@@ -28,9 +29,7 @@ import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 public class WebSocketEditorPanel extends JPanel
 {
     private final UserInterface userInterface;
-    private final FileLocationConfiguration fileLocationConfiguration;
     private final InitialWebSocketMessage originalWebSocketMessage;
-    private final ScriptLoaderFacade scriptLoader;
     private final ThemeAwareRSTAFactory rstaFactory;
     private final WebSocketEditorController controller;
 
@@ -51,12 +50,11 @@ public class WebSocketEditorPanel extends JPanel
         super(new BorderLayout());
 
         this.userInterface = userInterface;
-        this.fileLocationConfiguration = fileLocationConfiguration;
         this.originalWebSocketMessage = originalWebSocketMessage;
-        this.scriptLoader = new ScriptLoaderFacade(fileLocationConfiguration);
+        ScriptLoaderFacade scriptLoader = new ScriptLoaderFacade(fileLocationConfiguration);
         this.rstaFactory = new ThemeAwareRSTAFactory(userInterface, logger);
 
-        controller = new WebSocketEditorController(attackStarter, panelSwitcher);
+        controller = new WebSocketEditorController(attackStarter, panelSwitcher, fileLocationConfiguration, scriptLoader);
 
         initComponents();
     }
@@ -119,7 +117,7 @@ public class WebSocketEditorPanel extends JPanel
     {
         JPanel buttonPanel = new JPanel();
 
-        scriptComboBox = getScriptComboBox();
+        scriptComboBox = new JComboBox<>(controller.loadScripts());
         buttonPanel.add(scriptComboBox);
 
         JButton selectScriptsDirectoryButton = getScriptsDirectoryButton();
@@ -135,40 +133,21 @@ public class WebSocketEditorPanel extends JPanel
         return buttonPanel;
     }
 
-    private JComboBox<Script> getScriptComboBox()
-    {
-        List<Script> scriptList = scriptLoader.loadScripts();
-
-        return new JComboBox<>(scriptList.toArray(new Script[0]));
-    }
-
     private JButton getScriptsDirectoryButton()
     {
         JButton selectScriptsDirectoryButton = new JButton("Choose scripts directory");
         selectScriptsDirectoryButton.addActionListener(l -> {
             JFileChooser scriptsFileChooser = new JFileChooser();
-            scriptsFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            scriptsFileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
 
             int option = scriptsFileChooser.showOpenDialog(this);
 
-            if (option == JFileChooser.APPROVE_OPTION)
+            if (option == APPROVE_OPTION)
             {
                 File file = scriptsFileChooser.getSelectedFile();
-                fileLocationConfiguration.setWebSocketScriptPath(file.getAbsolutePath());
+                Script[] scripts = controller.loadScripts(file);
 
-                int originalSize = scriptComboBox.getItemCount();
-
-                List<Script> scriptList = scriptLoader.loadScripts();
-
-                for (Script script : scriptList)
-                {
-                    scriptComboBox.addItem(script);
-                }
-
-                for (int i=0; i < originalSize; i++)
-                {
-                    scriptComboBox.removeItemAt(0);
-                }
+                scriptComboBox.setModel(new DefaultComboBoxModel<>(scripts));
             }
         });
 
