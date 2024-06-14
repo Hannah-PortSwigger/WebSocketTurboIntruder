@@ -29,11 +29,10 @@ public class WebSocketEditorPanel extends JPanel
 {
     private final UserInterface userInterface;
     private final FileLocationConfiguration fileLocationConfiguration;
-    private final AttackStarter attackStarter;
     private final InitialWebSocketMessage originalWebSocketMessage;
-    private final PanelSwitcher panelSwitcher;
     private final ScriptLoaderFacade scriptLoader;
     private final ThemeAwareRSTAFactory rstaFactory;
+    private final WebSocketEditorController controller;
 
     private JComboBox<Script> scriptComboBox;
     private WebSocketMessageEditor webSocketsMessageEditor;
@@ -49,15 +48,15 @@ public class WebSocketEditorPanel extends JPanel
             PanelSwitcher panelSwitcher
     )
     {
+        super(new BorderLayout());
+
         this.userInterface = userInterface;
         this.fileLocationConfiguration = fileLocationConfiguration;
-        this.attackStarter = attackStarter;
         this.originalWebSocketMessage = originalWebSocketMessage;
-        this.panelSwitcher = panelSwitcher;
         this.scriptLoader = new ScriptLoaderFacade(fileLocationConfiguration);
         this.rstaFactory = new ThemeAwareRSTAFactory(userInterface, logger);
 
-        this.setLayout(new BorderLayout());
+        controller = new WebSocketEditorController(attackStarter, panelSwitcher);
 
         initComponents();
     }
@@ -189,9 +188,7 @@ public class WebSocketEditorPanel extends JPanel
 
             try
             {
-                attackStarter.startAttack(attackDetails);
-
-                panelSwitcher.showAttackPanel();
+                controller.startAttack(attackDetails);
             }
             catch (Exception e)
             {
