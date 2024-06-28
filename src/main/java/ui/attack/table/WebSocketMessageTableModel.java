@@ -52,7 +52,11 @@ public class WebSocketMessageTableModel extends AbstractTableModel
         return switch (columnIndex)
         {
             case 0 -> rowIndex;
-            case 1 -> webSocketConnectionMessage.getDirection().name();
+            case 1 -> switch (webSocketConnectionMessage.getDirection()) {
+                case CLIENT_TO_SERVER -> "To server";
+                case SERVER_TO_CLIENT -> "To client";
+            }; //TODO could add custom cell renderer with arrows
+
             case 2 -> webSocketConnectionMessage.getLength();
             case 3 -> webSocketConnectionMessage.getDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
             case 4 -> webSocketConnectionMessage.getComment();

@@ -1,38 +1,37 @@
 package ui.attack.table;
 
-import burp.api.montoya.ui.editor.HttpRequestEditor;
-import burp.api.montoya.ui.editor.WebSocketMessageEditor;
 import data.ConnectionMessage;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Consumer;
 
-import static burp.api.montoya.core.ByteArray.byteArray;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 public class WebSocketMessageTable extends JPanel
 {
     public WebSocketMessageTable(
             WebSocketMessageTableModel webSocketMessageTableModel,
-            WebSocketMessageEditor webSocketMessageEditor,
-            HttpRequestEditor upgradeRequestEditor)
+            Consumer<ConnectionMessage> messageConsumer
+    )
     {
         super(new BorderLayout());
 
-        JTable webSocketMessageTable = new JTable(webSocketMessageTableModel)
+        JTable webSocketMessageTable = new JTable(webSocketMessageTableModel);
+        webSocketMessageTable.setSelectionMode(SINGLE_SELECTION);
+
+        ListSelectionModel selectionModel = webSocketMessageTable.getSelectionModel();
+        selectionModel.addListSelectionListener(e ->
         {
-            @Override
-            public void changeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend)
+            if (e.getValueIsAdjusting())
             {
-                ConnectionMessage webSocketConnectionMessage = webSocketMessageTableModel.get(rowIndex);
-
-                webSocketMessageEditor.setContents(byteArray(webSocketConnectionMessage.getMessage()));
-
-                upgradeRequestEditor.setRequest(webSocketConnectionMessage.getConnection().upgradeRequest());
-
-                super.changeSelection(rowIndex, columnIndex, toggle, extend);
+                return;
             }
-        };
 
+            ConnectionMessage webSocketConnectionMessage = webSocketMessageTableModel.get(e.getFirstIndex());
+
+            messageConsumer.accept(webSocketConnectionMessage);
+        });
 
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem clearTableMenuItem = new JMenuItem("Clear table");

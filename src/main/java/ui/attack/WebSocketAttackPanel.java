@@ -3,15 +3,23 @@ package ui.attack;
 import attack.AttackManager;
 import attack.AttackStatus;
 import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.WebSocketMessageEditor;
+import data.ConnectionMessage;
 import ui.PanelSwitcher;
 import ui.attack.table.WebSocketMessageTable;
 import ui.attack.table.WebSocketMessageTableModel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Consumer;
+
+import static burp.api.montoya.core.ByteArray.byteArray;
+import static burp.api.montoya.ui.editor.EditorOptions.READ_ONLY;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.SOUTH;
+import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
+import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
 public class WebSocketAttackPanel extends JPanel
 {
@@ -42,37 +50,30 @@ public class WebSocketAttackPanel extends JPanel
 
     private void initComponents()
     {
-        this.add(getWebSocketMessageDisplay(), BorderLayout.CENTER);
-        this.add(getHaltConfigureButton(), BorderLayout.SOUTH);
-    }
+        WebSocketMessageEditor webSocketMessageEditor = userInterface.createWebSocketMessageEditor(READ_ONLY);
+        HttpRequestEditor upgradeRequestEditor = userInterface.createHttpRequestEditor(READ_ONLY);
 
-    private Component getWebSocketMessageDisplay()
-    {
-        WebSocketMessageEditor webSocketMessageEditor = getWebSocketMessageEditor();
-        HttpRequestEditor upgradeRequestEditor = getUpgradeRequestEditor();
-
-        JSplitPane webSocketInformationDisplay = new JSplitPane(JSplitPane.VERTICAL_SPLIT, webSocketMessageEditor.uiComponent(), upgradeRequestEditor.uiComponent());
+        JSplitPane webSocketInformationDisplay = new JSplitPane(
+                VERTICAL_SPLIT,
+                webSocketMessageEditor.uiComponent(),
+                upgradeRequestEditor.uiComponent()
+        );
         webSocketInformationDisplay.setResizeWeight(0.5);
 
-        JSplitPane attackPanelSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, getWebSocketMessageTable(webSocketMessageEditor, upgradeRequestEditor), webSocketInformationDisplay);
+        Consumer<ConnectionMessage> selectedMessageConsumer = connectionMessage -> {
+            webSocketMessageEditor.setContents(byteArray(connectionMessage.getMessage()));
+            upgradeRequestEditor.setRequest(connectionMessage.getConnection().upgradeRequest());
+        };
+
+        JSplitPane attackPanelSplitPane = new JSplitPane(
+                HORIZONTAL_SPLIT,
+                new WebSocketMessageTable(tableModel, selectedMessageConsumer),
+                webSocketInformationDisplay
+        );
         attackPanelSplitPane.setResizeWeight(0.5);
 
-        return attackPanelSplitPane;
-    }
-
-    private Component getWebSocketMessageTable(WebSocketMessageEditor webSocketMessageEditor, HttpRequestEditor upgradeRequestEditor)
-    {
-        return new WebSocketMessageTable(tableModel, webSocketMessageEditor, upgradeRequestEditor);
-    }
-
-    private WebSocketMessageEditor getWebSocketMessageEditor()
-    {
-        return userInterface.createWebSocketMessageEditor(EditorOptions.READ_ONLY);
-    }
-
-    private HttpRequestEditor getUpgradeRequestEditor()
-    {
-        return userInterface.createHttpRequestEditor(EditorOptions.READ_ONLY);
+        this.add(attackPanelSplitPane, CENTER);
+        this.add(getHaltConfigureButton(), SOUTH);
     }
 
     private Component getHaltConfigureButton()
