@@ -76,7 +76,9 @@ public class WebSocketMessageTableModel extends AbstractTableModel
 
     public ConnectionMessage get(int rowIndex)
     {
-        return connectionMessageList.get(rowIndex);
+        return rowIndex < 0 || rowIndex >= connectionMessageList.size()
+                ? null
+                : connectionMessageList.get(rowIndex);
     }
 
     public void clear()

@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
 
+import static java.awt.EventQueue.invokeLater;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 public class WebSocketMessageTable extends JPanel
@@ -28,14 +29,17 @@ public class WebSocketMessageTable extends JPanel
                 return;
             }
 
-            ConnectionMessage webSocketConnectionMessage = webSocketMessageTableModel.get(e.getFirstIndex());
+            ConnectionMessage webSocketConnectionMessage = webSocketMessageTableModel.get(selectionModel.getMaxSelectionIndex());
 
-            messageConsumer.accept(webSocketConnectionMessage);
+            if (webSocketConnectionMessage != null)
+            {
+                messageConsumer.accept(webSocketConnectionMessage);
+            }
         });
 
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem clearTableMenuItem = new JMenuItem("Clear table");
-        clearTableMenuItem.addActionListener(l -> EventQueue.invokeLater(webSocketMessageTableModel::clear));
+        clearTableMenuItem.addActionListener(l -> invokeLater(webSocketMessageTableModel::clear));
 
         popupMenu.add(clearTableMenuItem);
         webSocketMessageTable.setComponentPopupMenu(popupMenu);
