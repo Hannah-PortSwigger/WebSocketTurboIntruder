@@ -84,6 +84,7 @@ public class WebSocketFrame extends JFrame
         this.getContentPane().add(cardDeck);
         this.pack();
         this.toFront();
+        this.setLocationRelativeTo(userInterface.swingUtils().suiteFrame());
         this.setVisible(true);
     }
 }
