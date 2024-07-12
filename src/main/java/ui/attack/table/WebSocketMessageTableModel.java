@@ -1,5 +1,6 @@
 package ui.attack.table;
 
+import burp.api.montoya.websocket.Direction;
 import data.ConnectionMessage;
 
 import javax.swing.table.AbstractTableModel;
@@ -52,16 +53,18 @@ public class WebSocketMessageTableModel extends AbstractTableModel
         return switch (columnIndex)
         {
             case 0 -> rowIndex;
-            case 1 -> switch (webSocketConnectionMessage.getDirection()) {
-                case CLIENT_TO_SERVER -> "To server";
-                case SERVER_TO_CLIENT -> "To client";
-            }; //TODO could add custom cell renderer with arrows
-
+            case 1 -> webSocketConnectionMessage.getDirection();
             case 2 -> webSocketConnectionMessage.getLength();
             case 3 -> webSocketConnectionMessage.getDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
             case 4 -> webSocketConnectionMessage.getComment();
             default -> "";
         };
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex)
+    {
+        return columnIndex == 1 ? Direction.class : super.getColumnClass(columnIndex);
     }
 
     public void add(ConnectionMessage connectionMessage)

@@ -9,6 +9,7 @@ import data.ConnectionMessage;
 import ui.PanelSwitcher;
 import ui.attack.table.WebSocketMessageTable;
 import ui.attack.table.WebSocketMessageTableModel;
+import utils.IconFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,6 +29,7 @@ public class WebSocketAttackPanel extends JPanel
     private final AttackStatus attackStatus;
     private final PanelSwitcher panelSwitcher;
     private final WebSocketMessageTableModel tableModel;
+    private final IconFactory iconFactory;
 
     public WebSocketAttackPanel(
             UserInterface userInterface,
@@ -44,6 +46,7 @@ public class WebSocketAttackPanel extends JPanel
         this.attackStatus = attackStatus;
         this.panelSwitcher = panelSwitcher;
         this.tableModel = tableModel;
+        this.iconFactory = new IconFactory(userInterface);
 
         initComponents();
     }
@@ -67,7 +70,7 @@ public class WebSocketAttackPanel extends JPanel
 
         JSplitPane attackPanelSplitPane = new JSplitPane(
                 HORIZONTAL_SPLIT,
-                new WebSocketMessageTable(tableModel, selectedMessageConsumer),
+                new WebSocketMessageTable(tableModel, iconFactory, selectedMessageConsumer),
                 webSocketInformationDisplay
         );
         attackPanelSplitPane.setResizeWeight(0.5);
