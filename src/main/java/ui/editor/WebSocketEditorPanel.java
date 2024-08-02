@@ -13,6 +13,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import script.Script;
 import script.ScriptLoaderFacade;
 import ui.PanelSwitcher;
+import utils.OneShotOnShowingHierarchyListener;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -56,16 +57,15 @@ public class WebSocketEditorPanel extends JPanel
 
         controller = new WebSocketEditorController(attackStarter, panelSwitcher, fileLocationConfiguration, scriptLoader);
 
-        initComponents();
-    }
-
-    private void initComponents()
-    {
         JSplitPane editableEditors = new JSplitPane(HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
-        editableEditors.setResizeWeight(0.5);
-
         JSplitPane splitPane = new JSplitPane(VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
-        splitPane.setResizeWeight(0.3);
+
+        this.addHierarchyListener(new OneShotOnShowingHierarchyListener(() -> {
+            editableEditors.setResizeWeight(0.5);
+            splitPane.setResizeWeight(0.4);
+
+            validate();
+        }));
 
         this.add(splitPane, BorderLayout.CENTER);
     }
@@ -98,7 +98,8 @@ public class WebSocketEditorPanel extends JPanel
         Script script = scriptComboBox.getItemAt(scriptComboBox.getSelectedIndex());
         rSyntaxTextArea.setText(script.content());
 
-        scriptComboBox.addActionListener(l -> {
+        scriptComboBox.addActionListener(l ->
+        {
             Script newScript = scriptComboBox.getItemAt(scriptComboBox.getSelectedIndex());
             rSyntaxTextArea.setText(newScript.content());
         });
@@ -136,7 +137,8 @@ public class WebSocketEditorPanel extends JPanel
     private JButton getScriptsDirectoryButton()
     {
         JButton selectScriptsDirectoryButton = new JButton("Choose scripts directory");
-        selectScriptsDirectoryButton.addActionListener(l -> {
+        selectScriptsDirectoryButton.addActionListener(l ->
+        {
             JFileChooser scriptsFileChooser = new JFileChooser();
             scriptsFileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
 
@@ -157,7 +159,8 @@ public class WebSocketEditorPanel extends JPanel
     private JButton getAttackButton(JTextComponent scriptTextComponent)
     {
         JButton attackButton = new JButton("Attack");
-        attackButton.addActionListener(l -> {
+        attackButton.addActionListener(l ->
+        {
             AttackDetails attackDetails = new AttackDetails(
                     (int) numberOfThreadsSpinner.getValue(),
                     webSocketsMessageEditor.getContents().toString(),
@@ -168,8 +171,7 @@ public class WebSocketEditorPanel extends JPanel
             try
             {
                 controller.startAttack(attackDetails);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 showMessageDialog(
                         this,
