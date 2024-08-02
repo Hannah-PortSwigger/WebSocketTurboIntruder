@@ -1,22 +1,27 @@
 package ui.attack.table;
 
+import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.websocket.Direction;
 import data.ConnectionMessage;
 import utils.IconFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.function.Consumer;
 
 import static java.awt.EventQueue.invokeLater;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static javax.swing.SwingConstants.LEFT;
 import static utils.IconType.LEFT_ARROW;
 import static utils.IconType.RIGHT_ARROW;
 
 public class WebSocketMessageTable extends JPanel
 {
     public WebSocketMessageTable(
+            UserInterface userInterface,
             WebSocketMessageTableModel webSocketMessageTableModel,
             IconFactory iconFactory,
             Consumer<ConnectionMessage> messageConsumer
@@ -24,9 +29,18 @@ public class WebSocketMessageTable extends JPanel
     {
         super(new BorderLayout());
 
-        JTable webSocketMessageTable = new JTable(webSocketMessageTableModel);
+        JTable webSocketMessageTable = new PercentageBasedColumnWidthTable(AttackTableColumns.columnWidthPercentages());
+        webSocketMessageTable.setModel(webSocketMessageTableModel);
         webSocketMessageTable.setSelectionMode(SINGLE_SELECTION);
+
         webSocketMessageTable.setDefaultRenderer(Direction.class, new DirectionCellRenderer(iconFactory));
+        webSocketMessageTable.setDefaultRenderer(String.class, new LeftAlignedCellRender());
+        webSocketMessageTable.setDefaultRenderer(Integer.class, new LeftAlignedCellRender());
+
+        userInterface.applyThemeToComponent(webSocketMessageTable);
+
+        JTableHeader tableHeader = webSocketMessageTable.getTableHeader();
+        tableHeader.setDefaultRenderer(new LeftAlignedTableHeaderDecorator(tableHeader.getDefaultRenderer()));
 
         ListSelectionModel selectionModel = webSocketMessageTable.getSelectionModel();
         selectionModel.addListSelectionListener(e ->
@@ -86,6 +100,47 @@ public class WebSocketMessageTable extends JPanel
 
                 label.setIcon(icon);
                 label.setText(text);
+
+                label.setHorizontalAlignment(LEFT);
+            }
+
+            return component;
+        }
+    }
+
+    private static class LeftAlignedCellRender extends DefaultTableCellRenderer
+    {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+        {
+            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            if (component instanceof JLabel label)
+            {
+                label.setHorizontalAlignment(LEFT);
+            }
+
+            return component;
+        }
+    }
+
+    private static class LeftAlignedTableHeaderDecorator implements TableCellRenderer
+    {
+        private final TableCellRenderer tableCellRenderer;
+
+        public LeftAlignedTableHeaderDecorator(TableCellRenderer tableCellRenderer)
+        {
+            this.tableCellRenderer = tableCellRenderer;
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+        {
+            Component component = tableCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            if (component instanceof JLabel label)
+            {
+                label.setHorizontalAlignment(LEFT);
             }
 
             return component;

@@ -70,7 +70,7 @@ public class WebSocketAttackPanel extends JPanel
 
         JSplitPane attackPanelSplitPane = new JSplitPane(
                 HORIZONTAL_SPLIT,
-                new WebSocketMessageTable(tableModel, iconFactory, selectedMessageConsumer),
+                new WebSocketMessageTable(userInterface, tableModel, iconFactory, selectedMessageConsumer),
                 webSocketInformationDisplay
         );
         attackPanelSplitPane.setResizeWeight(0.5);

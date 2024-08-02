@@ -1,6 +1,5 @@
 package ui.attack.table;
 
-import burp.api.montoya.websocket.Direction;
 import data.ConnectionMessage;
 
 import javax.swing.table.AbstractTableModel;
@@ -28,21 +27,13 @@ public class WebSocketMessageTableModel extends AbstractTableModel
     @Override
     public int getColumnCount()
     {
-        return 5;
+        return AttackTableColumns.values().length;
     }
 
     @Override
     public String getColumnName(int column)
     {
-        return switch (column)
-        {
-            case 0 -> "Message ID";
-            case 1 -> "Direction";
-            case 2 -> "Length";
-            case 3 -> "Time";
-            case 4 -> "Comment";
-            default -> "";
-        };
+        return AttackTableColumns.headerWithIndex(column);
     }
 
     @Override
@@ -55,7 +46,7 @@ public class WebSocketMessageTableModel extends AbstractTableModel
             case 0 -> rowIndex;
             case 1 -> webSocketConnectionMessage.getDirection();
             case 2 -> webSocketConnectionMessage.getLength();
-            case 3 -> webSocketConnectionMessage.getDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
+            case 3 -> webSocketConnectionMessage.getDateTime().format(DateTimeFormatter.ofPattern("HH:mm:ss.SS dd LLL yyyy"));
             case 4 -> webSocketConnectionMessage.getComment();
             default -> "";
         };
@@ -64,7 +55,7 @@ public class WebSocketMessageTableModel extends AbstractTableModel
     @Override
     public Class<?> getColumnClass(int columnIndex)
     {
-        return columnIndex == 1 ? Direction.class : super.getColumnClass(columnIndex);
+        return AttackTableColumns.typeForIndex(columnIndex);
     }
 
     public void add(ConnectionMessage connectionMessage)
