@@ -27,21 +27,13 @@ public class WebSocketMessageTableModel extends AbstractTableModel
     @Override
     public int getColumnCount()
     {
-        return 5;
+        return AttackTableColumns.values().length;
     }
 
     @Override
     public String getColumnName(int column)
     {
-        return switch (column)
-        {
-            case 0 -> "Message ID";
-            case 1 -> "Direction";
-            case 2 -> "Length";
-            case 3 -> "Time";
-            case 4 -> "Comment";
-            default -> "";
-        };
+        return AttackTableColumns.headerWithIndex(column);
     }
 
     @Override
@@ -52,12 +44,18 @@ public class WebSocketMessageTableModel extends AbstractTableModel
         return switch (columnIndex)
         {
             case 0 -> rowIndex;
-            case 1 -> webSocketConnectionMessage.getDirection().name();
+            case 1 -> webSocketConnectionMessage.getDirection();
             case 2 -> webSocketConnectionMessage.getLength();
-            case 3 -> webSocketConnectionMessage.getDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
+            case 3 -> webSocketConnectionMessage.getDateTime().format(DateTimeFormatter.ofPattern("HH:mm:ss.SS dd LLL yyyy"));
             case 4 -> webSocketConnectionMessage.getComment();
             default -> "";
         };
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex)
+    {
+        return AttackTableColumns.typeForIndex(columnIndex);
     }
 
     public void add(ConnectionMessage connectionMessage)
@@ -72,7 +70,9 @@ public class WebSocketMessageTableModel extends AbstractTableModel
 
     public ConnectionMessage get(int rowIndex)
     {
-        return connectionMessageList.get(rowIndex);
+        return rowIndex < 0 || rowIndex >= connectionMessageList.size()
+                ? null
+                : connectionMessageList.get(rowIndex);
     }
 
     public void clear()
