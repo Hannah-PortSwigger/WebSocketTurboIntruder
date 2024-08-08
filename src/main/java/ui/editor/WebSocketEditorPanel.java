@@ -96,12 +96,16 @@ public class WebSocketEditorPanel extends JPanel
         RTextScrollPane scrollableCodeEditor = new RTextScrollPane(rSyntaxTextArea);
 
         Script script = scriptComboBox.getItemAt(scriptComboBox.getSelectedIndex());
-        rSyntaxTextArea.setText(script.content());
+        String content = script == null ? "" : script.content();
+
+        rSyntaxTextArea.setText(content);
 
         scriptComboBox.addActionListener(l ->
         {
             Script newScript = scriptComboBox.getItemAt(scriptComboBox.getSelectedIndex());
-            rSyntaxTextArea.setText(newScript.content());
+            String newContent = newScript == null ? "" : newScript.content();
+
+            rSyntaxTextArea.setText(newContent);
         });
 
         scrollableCodeEditor.setLineNumbersEnabled(true);
