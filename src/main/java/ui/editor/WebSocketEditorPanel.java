@@ -13,7 +13,6 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import script.Script;
 import script.ScriptLoaderFacade;
 import ui.PanelSwitcher;
-import utils.OneShotOnShowingHierarchyListener;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -58,14 +57,10 @@ public class WebSocketEditorPanel extends JPanel
         controller = new WebSocketEditorController(attackStarter, panelSwitcher, fileLocationConfiguration, scriptLoader);
 
         JSplitPane editableEditors = new JSplitPane(HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
+        editableEditors.setResizeWeight(0.5);
+
         JSplitPane splitPane = new JSplitPane(VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
-
-        this.addHierarchyListener(new OneShotOnShowingHierarchyListener(() -> {
-            editableEditors.setResizeWeight(0.5);
-            splitPane.setResizeWeight(0.4);
-
-            validate();
-        }));
+        splitPane.setResizeWeight(0.3);
 
         this.add(splitPane, BorderLayout.CENTER);
     }
