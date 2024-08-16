@@ -17,8 +17,11 @@ import ui.PanelSwitcher;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 
+import static java.awt.EventQueue.invokeLater;
 import static javax.swing.JFileChooser.APPROVE_OPTION;
 import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
@@ -57,10 +60,20 @@ public class WebSocketEditorPanel extends JPanel
         controller = new WebSocketEditorController(attackStarter, panelSwitcher, fileLocationConfiguration, scriptLoader);
 
         JSplitPane editableEditors = new JSplitPane(HORIZONTAL_SPLIT, getWebSocketMessageEditor(), getUpgradeHttpMessageEditor());
-        editableEditors.setResizeWeight(0.5);
 
         JSplitPane splitPane = new JSplitPane(VERTICAL_SPLIT, editableEditors, getPythonCodeEditor());
-        splitPane.setResizeWeight(0.3);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (getWidth() > 0) {
+                    editableEditors.setDividerLocation(0.5);
+                    invokeLater(() -> splitPane.setDividerLocation(0.3));
+
+                    removeComponentListener(this);
+                }
+            }
+        });
 
         this.add(splitPane, BorderLayout.CENTER);
     }
