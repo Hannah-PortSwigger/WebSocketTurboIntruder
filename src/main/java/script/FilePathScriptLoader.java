@@ -7,11 +7,18 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
+
 class FilePathScriptLoader implements ScriptLoader
 {
     @Override
     public List<Script> loadScripts(String path)
     {
+        if (path == null)
+        {
+            return emptyList();
+        }
+
         try (Stream<Path> stream = Files.walk(Paths.get(path)))
         {
             return stream
