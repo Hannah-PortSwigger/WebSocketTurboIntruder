@@ -20,6 +20,8 @@ public class WebSocketFrame extends JFrame
 {
     private static final String ATTACK_PANEL_NAME = "attackPanel";
     private static final String EDITOR_PANEL_NAME = "editorPanel";
+    private static final double WIDTH_RATIO = 0.5;
+    private static final double HEIGHT_RATIO = 0.65;
 
     WebSocketFrame(
             Logger logger,
@@ -33,7 +35,15 @@ public class WebSocketFrame extends JFrame
         String titleString = EXTENSION_NAME + " - " + webSocketMessage.upgradeRequest().url();
 
         setTitle(titleString);
-        setPreferredSize(new Dimension(800, 600));
+
+        Frame burpFrame = userInterface.swingUtils().suiteFrame();
+
+        Dimension dimension = burpFrame.getSize();
+
+        int width = (int) (dimension.width * WIDTH_RATIO);
+        int height = (int) (dimension.height * HEIGHT_RATIO);
+
+        setPreferredSize(new Dimension(width, height));
 
         CardLayout cardLayout = new CardLayout();
         JPanel cardDeck = new JPanel(cardLayout);
@@ -84,7 +94,7 @@ public class WebSocketFrame extends JFrame
         this.getContentPane().add(cardDeck);
         this.pack();
         this.toFront();
-        this.setLocationRelativeTo(userInterface.swingUtils().suiteFrame());
+        this.setLocationRelativeTo(burpFrame);
         this.setVisible(true);
     }
 }

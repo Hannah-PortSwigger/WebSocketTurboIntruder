@@ -3,11 +3,16 @@ plugins {
 }
 
 group = 'net.portswigger'
-version = '1.2.1'
+version = '1.2.2'
 
 repositories {
     mavenLocal()
     mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 dependencies {
