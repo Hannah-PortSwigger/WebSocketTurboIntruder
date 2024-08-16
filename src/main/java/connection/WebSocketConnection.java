@@ -10,6 +10,7 @@ import data.PendingMessages;
 import data.WebSocketConnectionMessage;
 import logger.Logger;
 import logger.LoggerLevel;
+import utils.PayloadManipulator;
 
 import static burp.api.montoya.websocket.Direction.CLIENT_TO_SERVER;
 
@@ -21,6 +22,7 @@ public class WebSocketConnection implements Connection
     private final int attackId;
     private final HttpRequest upgradeRequest;
     private final ExtensionWebSocket extensionWebSocket;
+    private final PayloadManipulator payloadManipulator;
 
     public WebSocketConnection(
             Logger logger,
@@ -35,6 +37,7 @@ public class WebSocketConnection implements Connection
         this.pendingMessages = pendingMessages;
         this.attackId = attackId;
         this.upgradeRequest = upgradeRequest;
+        this.payloadManipulator = new PayloadManipulator();
 
         extensionWebSocket = createExtensionWebSocket(upgradeRequest);
     }
@@ -46,9 +49,25 @@ public class WebSocketConnection implements Connection
     }
 
     @Override
-    public void queue(String payload, String comment)
+    public void queue(String payload, String replacement)
+    {
+        String newPayload = payloadManipulator.modify(payload, replacement);
+
+        pendingMessages.accept(new AttackIdAndWebSocketConnectionMessage(attackId, new WebSocketConnectionMessage(newPayload, CLIENT_TO_SERVER, this)));
+    }
+
+    @Override
+    public void queueWithComment(String payload, String comment)
     {
         pendingMessages.accept(new AttackIdAndWebSocketConnectionMessage(attackId, new WebSocketConnectionMessage(payload, CLIENT_TO_SERVER, comment, this)));
+    }
+
+    @Override
+    public void queueWithComment(String payload, String replacement, String comment)
+    {
+        String newPayload = payloadManipulator.modify(payload, replacement);
+
+        pendingMessages.accept(new AttackIdAndWebSocketConnectionMessage(attackId, new WebSocketConnectionMessage(newPayload, CLIENT_TO_SERVER, comment, this)));
     }
 
     @Override

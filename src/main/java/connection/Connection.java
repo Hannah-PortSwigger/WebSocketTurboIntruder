@@ -6,7 +6,11 @@ public interface Connection
 {
     void queue(String payload);
 
-    void queue(String payload, String comment);
+    void queue(String payload, String replacement);
+
+    void queueWithComment(String payload, String comment);
+
+    void queueWithComment(String payload, String replacement, String comment);
 
     HttpRequest upgradeRequest();
 }
